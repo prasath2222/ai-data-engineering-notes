@@ -48,4 +48,18 @@ Raw human content with **no rows, no columns, and no keys**.
 - *(In AI Engineering, most of your work is converting messy Unstructured and Semi-Structured data into clean Structured tables and search indexes.)*
 </details>
 
+## Topic 4: Live App Database vs. Analytics Database (OLTP vs. OLAP)
+
+<details>
+<summary><b>1. Why do companies use two separate databases instead of just one?</b></summary>
+
+1. **Live App Database (OLTP):** Runs the real-time app for users (likes, orders, messages). It needs to stay super fast for small, instant actions.
+2. **Analytics Database / Data Warehouse (OLAP):** A **separate copy** of the data where analysts and AI models run heavy math on millions of rows without slowing down or crashing the live app.
+</details>
+
+<details>
+<summary><b>2. What is the Data Engineer's role between these two databases?</b></summary>
+
+The Data Engineer builds the automated pipeline that **copies** new data from the **Live App Database**, cleans it up, and loads it into the **Analytics Database**.
+</details>
 
