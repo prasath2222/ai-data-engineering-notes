@@ -35,4 +35,55 @@ When you create an index (`CREATE INDEX idx_name ON Customers(name);`), the data
   - **DO index** columns you frequently search (`WHERE`), join (`ON`), or sort (`ORDER BY`)—like `phone`, `email`, or `customer_id`.
   - **DO NOT index** columns you rarely search (like `notes` or `address`) or tables that get thousands of writes per second with almost no searches.
   - *(Bonus: Databases **automatically** create an index for every **Primary Key** and **`UNIQUE`** column—you don't have to create those yourself.)*
-  - 
+
+    ## 3. B-Tree Index vs. Hash Index (Two Ways to Organize the Shortcut Book)
+
+### A. B-Tree Index — "The Sorted A-to-Z Dictionary" (Default)
+Almost every index you create in PostgreSQL or MySQL is a **B-Tree Index** by default. It keeps your shortcut book in **strict sorted order** (`1, 2, 3...` or `A, B, C...`).
+- **What it is great for:**
+  - **Exact searches:** `WHERE price = 50` (jumps straight to 50).
+  - **Range searches:** `WHERE price > 50` or `WHERE order_date BETWEEN '2026-01-01' AND '2026-01-31'` (jumps to the start of the range, then reads straight down because everything is already sorted).
+  - **Sorting:** `ORDER BY price` (already sorted, so zero extra sorting work).
+
+### B. Hash Index — "The Coat-Check Locker Ticket" (Exact Match Only)
+A **Hash Index** does **not** sort anything. Instead, it passes your value through a math formula (a hash function) that turns it into a direct locker number:
+- `"arun@gmail.com"` $\rightarrow$ **Locker #42**
+- `"priya@gmail.com"` $\rightarrow$ **Locker #918**
+- **What it is great for:** **ONLY exact `=` matches** (`WHERE email = 'arun@gmail.com'`). It jumps straight to Locker #42 in 1 single step.
+- **What it FAILS at:** **Ranges (`>`, `<`, `BETWEEN`) and sorting (`ORDER BY`).**
+  - Because `"arun1@gmail.com"` might sit in Locker #42 while `"arun2@gmail.com"` sits in Locker #918, values are scattered in random lockers—so the database cannot scan a range from A to Z.
+- **Rule of Thumb:** Stick to **B-Tree** 99% of the time. Only use a Hash Index when a huge text column (like a long URL or session token) is **only ever** searched with `=`.
+
+### Quick Comparison: B-Tree vs. Hash
+| Feature | B-Tree Index (Default) | Hash Index |
+| :--- | :--- | :--- |
+| **How it organizes data** | Strict sorted order (`A -> Z`, `1 -> 100`) | Random locker numbers via math formula |
+| **Exact match (`=`)** | Very Fast | Slightly Faster |
+| **Range queries (`>`, `<`, `BETWEEN`)** | **Very Fast** | **Impossible** (Reads every row instead) |
+| **Sorting (`ORDER BY`)** | **Very Fast** | **Impossible** |
+
+---
+
+## 4. Composite Index — "A Phonebook Sorted by 2 Columns"
+
+When you frequently search using **two columns together**, you can create one **Composite Index** covering both columns:
+```sql
+CREATE INDEX idx_city_name ON Customers(city, name);
+```
+
+### How It Looks Inside
+Think of a printed phonebook sorted by **City first (1st column)**, and **Name second (2nd column)**:
+- **Chennai** — Arun
+- **Chennai** — Karthik
+- **Chennai** — Priya
+- **Coimbatore** — Arun
+- **Coimbatore** — Meera
+
+### The Golden "Left-to-Right" Rule
+Because the shortcut book is sorted starting from the **leftmost column (`city`)**, look at which queries use the index and which fail:
+1. **`WHERE city = 'Chennai' AND name = 'Priya'` (Uses 1st + 2nd column):** **WORKS!** Jumps straight to Chennai, then straight to Priya.
+2. **`WHERE city = 'Chennai'` (Uses ONLY 1st column):** **WORKS!** All Chennai rows are grouped together in one place.
+3. **`WHERE name = 'Arun'` (Uses ONLY 2nd column — skips `city`):** **FAILS (Full Table Scan)!**
+   - Because `"Arun"` is scattered inside Chennai, inside Coimbatore, and inside Madurai, the database cannot jump straight to `"Arun"` and must read every single row.
+- **Rule of Thumb:** Always put the column you filter by most often on the **left (1st position)** when creating a Composite Index.
+  
