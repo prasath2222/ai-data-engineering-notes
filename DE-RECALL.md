@@ -63,3 +63,18 @@ Raw human content with **no rows, no columns, and no keys**.
 The Data Engineer builds the automated pipeline that **copies** new data from the **Live App Database**, cleans it up, and loads it into the **Analytics Database**.
 </details>
 
+## Topic 5: How Data Moves — Batch vs. Streaming
+
+<details>
+<summary><b>1. What is Batch Processing?</b></summary>
+
+Collecting data over time and moving it all together in **scheduled chunks** (e.g., every hour or once every night at 2:00 AM).
+- **Used for:** 90% of data work — daily reports, updating AI search documents, and building training datasets. Simple, cheap, and reliable.
+</details>
+
+<details>
+<summary><b>2. What is Streaming (Real-Time) Processing?</b></summary>
+
+Moving each piece of data **the exact second it happens**, continuously 24/7, one event at a time.
+- **Used for:** Urgent situations where waiting even 1 minute is too late — like blocking credit card fraud immediately or live delivery map tracking.
+</details>
