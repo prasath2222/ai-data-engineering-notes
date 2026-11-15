@@ -87,3 +87,42 @@ Because the shortcut book is sorted starting from the **leftmost column (`city`)
    - Because `"Arun"` is scattered inside Chennai, inside Coimbatore, and inside Madurai, the database cannot jump straight to `"Arun"` and must read every single row.
 - **Rule of Thumb:** Always put the column you filter by most often on the **left (1st position)** when creating a Composite Index.
   
+## 5. `EXPLAIN` — Checking If Your Index Actually Worked
+
+When a query feels slow, put the word **`EXPLAIN`** right in front of your `SELECT` query:
+```sql
+EXPLAIN SELECT * FROM Customers WHERE name = 'Rahul';
+```
+Instead of returning the customer's data, the database gives you a **report card** showing how it searched the table:
+- **`Seq Scan` (Sequential Scan — Bad):** The database **ignored your shortcut book** and read every single row from Line 1 to the end.
+- **`Index Scan` (Good):** The database **used your A-to-Z shortcut book** and jumped straight to Rahul in milliseconds.
+
+---
+
+## 6. Common Mistakes That Silently Break Your Index
+
+Even when an index exists, the database will throw away the A-to-Z shortcut book and read every single row if you write your `WHERE` condition the wrong way:
+
+### Mistake 1: Putting `%` at the Front of a `LIKE` Search
+Think of a normal **A-to-Z dictionary**:
+- **Works (`WHERE name LIKE 'Rah%'` — starts with `"Rah"`):**
+  - Every name starting with `"Rah"` is grouped together in the **"R"** section. The database flips straight to `"R"` and uses the index.
+- **Breaks (`WHERE name LIKE '%hul'` — ends with `"hul"`):**
+  - A name ending in `"hul"` could start with **A** (*Anshul*), **M** (*Mehul*), or **R** (*Rahul*). Because they are scattered across every letter of the alphabet, the database cannot use the A-to-Z tabs and must read **every single row**.
+
+### Mistake 2: Doing Math or Running Functions on the Indexed Column
+Your shortcut book stores the **original column values** (e.g., monthly `salary` = `50000`), not calculated numbers:
+- **Breaks (`WHERE salary * 12 > 600000`):** The shortcut book does not contain `salary * 12`, so the database ignores the index and calculates `salary * 12` for every single row one by one.
+- **Works (`WHERE salary > 50000`):** Keep the column clean and alone on the left side, and put all math on the right side so the database can jump straight to `50000` in the shortcut book.
+
+---
+
+## Module 4 Quick Memory Table
+| Concept | Simple Analogy | Key Takeaway |
+| :--- | :--- | :--- |
+| **Full Table Scan (`Seq Scan`)** | Reading a 500-page notebook line by line | Slow on big tables; checks every row. |
+| **Index Scan** | Using an A-to-Z shortcut book | Fast; jumps straight to the row address. |
+| **B-Tree Index** | Sorted A-to-Z dictionary (Default) | Works for both exact (`=`) and ranges (`>`, `<`, `BETWEEN`). |
+| **Hash Index** | Coat-check locker ticket | Works **only** for exact (`=`); fails on ranges and sorting. |
+| **Composite Index `(city, name)`** | Phonebook sorted by City first, Name second | Must use the **leftmost** column (`city`) first to work. |
+| **Index Trade-Off** | Updating two books instead of one | Speeds up `SELECT`, slightly slows down `INSERT`/`UPDATE`/`DELETE`. |
