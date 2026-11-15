@@ -112,3 +112,88 @@
   - *Logical:* Adding new columns or views doesn't break existing queries.
   - *Physical:* Adding indexes or upgrading storage hardware speeds up queries without changing any SQL code.
     
+# Module 1: ER Modeling, Keys, Relationships & Constraints
+
+## 1. The Blueprint (ER Model & Building Blocks)
+- **ER Model (Entity-Relationship Model):** The blueprint you plan *before* creating a database—deciding what separate tables you need and how they link together.
+- **Why Separate Tables? (Single Source of Truth):** Instead of dumping everything into one giant Excel sheet (which causes typos, wasted storage, and update nightmares), each fact lives in **one single place**. Update a price once in `Products`, and every linked order automatically reflects it.
+- **Core Terms:**
+  - **Entity = Table:** One separate list for one type of thing (`Customers`, `Products`, `Orders`).
+  - **Attribute = Column:** One detail about that thing (`name`, `phone`, `price`).
+  - **Record / Tuple = Row:** One single entry (one customer or one order).
+
+---
+
+## 2. Keys (How Tables Identify & Link Rows)
+
+### Primary Key & Surrogate Key
+- **Primary Key (PK):** One column chosen to uniquely identify every row in a table (like an Aadhaar number or Roll Number).
+  - **2 Strict Rules:** Must be **Unique** (no duplicates) and **Not Null** (never blank).
+- **Surrogate Key:** A system-generated ID number (`1, 2, 3...` or `UUID`) with no real-world meaning.
+  - **Why not use `phone` or `email` as Primary Key?** People change phone numbers/emails, and walk-in customers might leave them blank. A system ID (`customer_id`) **never changes**.
+
+### Foreign Key (Linking Tables)
+- **Foreign Key (FK):** A Primary Key borrowed from another table and placed in a connecting table to link rows together.
+- **Referential Integrity:** The safety rule enforced by a Foreign Key—the database blocks you from saving an order with a `customer_id` or `product_id` that does not exist.
+
+### Other Key Names (For Interviews)
+- **Candidate Key:** Any column that *could* qualify to be the Primary Key (`customer_id`, `phone`, `email`).
+- **Alternate Key:** The unique Candidate Keys you *didn't* pick as the Primary Key (`phone`, `email`).
+- **Composite Key:** When **2 columns team up together** to act as one Primary Key (e.g., `(order_id, product_id)` inside an order items table).
+
+---
+
+## 3. Relationships (Cardinality)
+
+**Cardinality** defines how many rows in Table A connect to rows in Table B:
+
+### A. One-to-One (`1:1`)
+- **Rule:** 1 row in Table A links to **at most 1** row in Table B, and vice versa.
+- **Example:** 1 `Branch` has 1 `Manager`, and 1 `Manager` can only run 1 `Branch`.
+- **How to build it:** Put the Foreign Key (`manager_id`) in `Branches` and add a **`UNIQUE`** lock so the same manager cannot be entered twice.
+
+### B. One-to-Many (`1:N`)
+- **Rule:** 1 parent row links to **many** child rows, while each child row belongs to **only 1** parent.
+- **Example:** 1 `Customer` places **many** `Orders`; each `Order` belongs to **only 1** `Customer`.
+- **Golden Rule:** Always put the **Foreign Key** on the **"Many"** side (`Orders` gets `customer_id`).
+
+### C. Many-to-Many (`M:N`) — The 3-Table Bridge Pattern
+- **Rule:** Many rows in Table A connect to many rows in Table B.
+- **Example:** Many `Customers` buy many `Products` (or 1 `Order` contains many `Products`, and 1 `Product` appears in many `Orders`).
+- **How to build it:** Keep both parent tables pure, and create a **3rd Connecting (Bridge) Table** in the middle holding **both Primary Keys** as Foreign Keys:
+
+**1. `Customers` (People Only)**
+| customer_id (PK) | name | phone |
+| :--- | :--- | :--- |
+| 1 | Arun | 9876543210 |
+| 2 | Priya | 9123456789 |
+
+**2. `Products` (Menu Only)**
+| product_id (PK) | item | price |
+| :--- | :--- | :--- |
+| 10 | Masala Tea | 20 |
+| 20 | Biscuit | 10 |
+
+**3. `Orders` (Connecting Table in the Middle)**
+| order_id (PK) | customer_id (FK) | product_id (FK) | qty |
+| :--- | :--- | :--- | :--- |
+| 101 | 1 *(Arun)* | 10 *(Masala Tea)* | 2 |
+| 102 | 2 *(Priya)* | 10 *(Masala Tea)* | 1 |
+
+---
+
+## 4. Constraints (Door Locks Against Bad Data)
+Rules attached to columns so the database automatically rejects invalid input **before** saving it:
+- **`NOT NULL`:** Blocks blank cells (e.g., product `name` cannot be empty).
+- **`UNIQUE`:** Blocks duplicate values (e.g., two accounts cannot share the same `email`).
+- **`CHECK`:** Enforces a condition (e.g., `CHECK (price > 0)` rejects negative prices like `-50`).
+- **`DEFAULT`:** Auto-fills a preset value if left blank (e.g., today's date/time).
+
+---
+
+## 5. Metadata & Data Independence
+- **Metadata (Data Dictionary):** "Data about data"—the database's hidden system catalog (`INFORMATION_SCHEMA`) that tracks all table names, column types, and rules. Automated data pipelines inspect this to detect schema changes.
+- **Data Independence:**
+  - *Logical:* Adding new columns or views does not break existing queries.
+  - *Physical:* Adding indexes or upgrading storage hardware speeds up queries without changing any SQL code.
+    
