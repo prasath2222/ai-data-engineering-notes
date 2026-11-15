@@ -22,3 +22,30 @@ Think of a house's water system:
 2. **Transform:** Clean the data (remove duplicates, fix missing values, convert formats).
 3. **Load:** Save the clean data into a fast database or storage system so others can query it.
 </details>
+
+
+## Topic 3: The 3 Types of Data
+
+<details>
+<summary><b>1. What is Structured Data?</b></summary>
+
+Data that fits neatly into fixed **rows and columns** (like an Excel spreadsheet or a SQL database table), where every record follows the exact same format.
+- *Examples:* Bank transactions, user signups, product prices (`user_id | name | amount`).
+</details>
+
+<details>
+<summary><b>2. What is Semi-Structured Data?</b></summary>
+
+Data that does **not** fit into rigid rows and columns because different records can have different fields, so it uses `"key": "value"` pairs (most commonly **JSON**).
+- *Examples:* API responses, app event logs, order receipts (`{"user": "Arun", "items": ["dosa", "coffee"]}`).
+</details>
+
+<details>
+<summary><b>3. What is Unstructured Data?</b></summary>
+
+Raw human content with **no rows, no columns, and no keys**.
+- *Examples:* Company PDF manuals, scanned invoices, customer support chats, images, and audio files.
+- *(In AI Engineering, most of your work is converting messy Unstructured and Semi-Structured data into clean Structured tables and search indexes.)*
+</details>
+
+
