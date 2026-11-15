@@ -79,3 +79,69 @@ GROUP BY c.city, p.category;
 ```
 - **Simple to write:** Analysts never get lost in a maze of tables.
 - **Blazing fast:** Modern Data Warehouses are specifically engineered to join one giant Fact table with small Dimension tables in milliseconds.
+## 4. Row Storage vs. Columnar Storage ("Reading a Full Receipt vs. Reading One Column")
+
+Suppose your `Sales` table has **50 columns** (`sale_id`, `customer_name`, `address`, `phone`, ..., `revenue`) and **100 million rows**, and you run:
+```sql
+SELECT SUM(revenue) FROM Sales;
+```
+Notice you only need **1 column (`revenue`)** out of 50. How the database saves those rows on the hard drive decides whether this query takes **2 minutes** or **1 second**:
+
+### A. Row-Oriented Storage (Used by OLTP: PostgreSQL, MySQL, CSV)
+- **How it saves data on disk:** Writes one complete row after another:
+  `[101, Arun, Chennai, ..., 50000]` $\rightarrow$ `[102, Priya, Coimbatore, ..., 1500]`
+- **Why it is great for apps (OLTP):** When Arun opens his profile page, the database grabs his entire row (`name + city + phone + email`) in **one single read**.
+- **Why it is slow for analytics (OLAP):** To calculate `SUM(revenue)`, the database must read **all 50 columns** of all 100 million rows off the hard drive—wasting 98% of its effort reading addresses and phone numbers it doesn't even use.
+
+### B. Columnar Storage (Used by OLAP: Parquet, BigQuery, Snowflake, DuckDB)
+- **How it saves data on disk:** Groups **each column together** in its own separate block:
+  - `sale_id` block: `[101, 102, 103, ...]`
+  - `city` block: `[Chennai, Coimbatore, Madurai, ...]`
+  - `revenue` block: `[50000, 1500, 300, ...]`
+- **Why it is 100x faster for analytics:**
+  1. **Skips 49 columns completely:** To run `SELECT SUM(revenue)`, the warehouse reads **only the `revenue` block** and never touches `name`, `address`, or `phone`.
+  2. **Extreme compression:** Because every value inside one column block has the exact same data type (for example, `city` repeats `"Chennai"` 2 million times), columnar engines compress file sizes down by **70% to 90%**.
+
+---
+
+## 5. Apache Parquet — "The King of Data Engineering File Formats"
+
+When Data Engineers save large datasets in cloud storage (AWS S3, Google Cloud Storage, Azure Blob), they almost never use `.csv` or `.json`—they convert the data into **`.parquet`** files:
+
+| Feature | CSV / JSON | Apache Parquet (`.parquet`) |
+| :--- | :--- | :--- |
+| **Storage Layout** | Row-by-row (plain text) | **Columnar** (binary) |
+| **File Size** | Huge (e.g., 10 GB) | **5x to 10x smaller** (e.g., 1.2 GB) via compression |
+| **Query Speed** | Slow (must read every character) | **Blazing fast** (reads only needed columns) |
+| **Schema / Data Types** | Forgets types (`"123"` looks like text) | Stores exact types (`INT`, `DATE`, `FLOAT`) inside the file |
+
+---
+
+## 6. Partitioning — "Sorting Receipts Into Separate Daily Folders"
+
+Even with Parquet files, imagine you have **5 years of sales (5 billion rows)**, and your dashboard only asks for **yesterday's sales**:
+```sql
+SELECT SUM(revenue) FROM Sales WHERE sale_date = '2026-11-14';
+```
+
+**Partitioning** splits one giant table into **separate physical folders** based on a column you filter by every day (most commonly `sale_date` or `country`):
+```text
+/sales_data/
+  ├── sale_date=2026-11-12/part-01.parquet
+  ├── sale_date=2026-11-13/part-01.parquet
+  └── sale_date=2026-11-14/part-01.parquet
+```
+- **Partition Pruning (Skipping Folders):** When you include `WHERE sale_date = '2026-11-14'`, the query engine completely ignores the other 1,824 daily folders and opens **only that single folder**—cutting query time and cloud data-scan costs by up to **99%**.
+- **Rule of Thumb:** Partition by a low-to-medium cardinality column used in almost every `WHERE` filter (like `order_date` by day/month). **Never** partition by a unique ID like `user_id` (that would create millions of tiny folders and crash performance).
+
+---
+
+## Module 7 Quick Memory Table
+| Concept | Simple Analogy | Key Takeaway |
+| :--- | :--- | :--- |
+| **OLTP** | Shop cash register (PostgreSQL, MySQL) | Fast single-row writes for live apps. |
+| **OLAP** | Manager's analytics office (BigQuery, Snowflake) | Fast multi-million-row reads for reports. |
+| **Fact Table** | The receipt numbers (`revenue`, `quantity`, IDs) | Tall, narrow table holding events and measurements. |
+| **Dimension Table** | Descriptive labels (`customer`, `product`, `date`) | Short, wide lookup tables joined in 1 hop. |
+| **Columnar / Parquet** | Storing each column in its own compressed block | Reads only requested columns; 10x smaller than CSV. |
+| **Partitioning** | Putting each day's files into its own folder | Skips irrelevant folders (**Partition Pruning**). |
