@@ -442,3 +442,26 @@ Customer and product profiles in **Dimension Tables** (`dim_customers`) change o
 - **Best For:** Tracking real-world changes (city moves, plan upgrades) so past sales stay accurately linked to where the customer lived at that exact time.
 </details>
 
+## Topic 21: Data Pipelines for AI (RAG & Vector Databases)
+
+<details>
+<summary><b>1. What is a RAG data pipeline?</b></summary>
+
+**RAG (Retrieval-Augmented Generation)** pipelines take unstructured documents (PDFs, manuals, support tickets) and prepare them so an AI chatbot (LLM) can look up exact facts from your company data before answering a question—without pasting an entire 500-page manual into every prompt.
+</details>
+
+<details>
+<summary><b>2. What are the 3 steps of an AI / RAG Data Pipeline?</b></summary>
+
+1. **Extract & Clean:** Pulls raw text from PDFs, docs, or web pages and strips out messy headers, logos, and broken formatting.
+2. **Chunking:** Slices long documents into small, bite-sized paragraphs (**Chunks**)—like cutting a 500-page manual into individual recipe cards so the AI only retrieves the exact paragraph it needs.
+3. **Embedding & Vector Loading:** Uses an **Embedding Model** to convert each text chunk into a list of numbers (**Vectors**) representing its *meaning*, and loads them into a **Vector Database** (`pgvector`, Pinecone, Qdrant).
+</details>
+
+<details>
+<summary><b>3. Why use a Vector Database instead of normal Keyword Search?</b></summary>
+
+| User Question | Normal Keyword Search (Exact Words) | Vector Database (Searches by *Meaning*) |
+| :--- | :--- | :--- |
+| *"Customer wants their money back"* | ❌ Fails if the manual uses the word **"Refund"** instead of **"money back"** | ✅ Instantly finds the **"Refund Policy"** chunk because the *meaning* matches |
+</details>
