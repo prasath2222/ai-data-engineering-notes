@@ -351,3 +351,29 @@ They keep your cheap Parquet files in the Data Lake and add a smart **"Master Re
 2. **Easy `UPDATE` & `DELETE`:** Lets you edit or delete single rows cleanly—the Register Book creates the updated file behind the scenes.
 3. **Time Travel (Built-in Undo):** Lets you query past versions or instantly roll back (`Version 2 -> Version 1`) if a bad pipeline corrupts today's data.
 </details>
+
+## Topic 18: Data Transformation & `dbt` (Building Clean Tables in Stages)
+
+<details>
+<summary><b>1. What is dbt (Data Build Tool)?</b></summary>
+
+**`dbt`** is the industry-standard tool for the **"T" (Transform)** in ELT. It lets Data Engineers organize messy SQL transformations inside a Data Warehouse into clean, tested, version-controlled stages instead of running hundreds of chaotic manual scripts.
+</details>
+
+<details>
+<summary><b>2. What are the 3 dbt transformation layers?</b></summary>
+
+| Layer | Kitchen Analogy | What Happens to the Data | Example Table Name |
+| :--- | :--- | :--- | :--- |
+| **1. Staging** | Washing & chopping vegetables | Renames ugly columns (`c_id` → `customer_id`), trims spaces, and fixes basic data types (`"₹20"` → `20`). No joins or heavy math yet. | `stg_orders` |
+| **2. Intermediate** | Cooking the main dishes | Joins clean staging tables together and applies core business rules (e.g., calculating discounts). | `int_orders_with_names` |
+| **3. Marts** | Plating the final meal | Builds the final **Fact & Dimension tables** (`fact_sales`, `dim_customers`) ready for dashboards and AI models. | `fact_sales` |
+</details>
+
+<details>
+<summary><b>3. What are the 3 superpowers dbt gives Data Engineers?</b></summary>
+
+1. **Automatic Run Order (Lineage):** Automatically detects dependencies between tables and runs them in the exact right order (`Staging` → `Intermediate` → `Marts`).
+2. **Built-in Data Tests:** Runs automated checks (like `unique` and `not_null`) before publishing tables so broken numbers never reach dashboards.
+3. **Git Version Control & Docs:** Stores every SQL model in GitHub for peer review and auto-generates a visual lineage map showing where every column came from.
+</details>
