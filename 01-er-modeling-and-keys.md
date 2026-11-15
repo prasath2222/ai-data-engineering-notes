@@ -88,3 +88,27 @@
 | 101 | 10 | 2 |
 | 101 | 20 | 1 |
 
+## Part 4: Other Key Types, Constraints & Metadata
+
+### 1. Key Types Summary
+- **Candidate Key:** Any column (or set of columns) that uniquely identifies a row and *could* be chosen as the Primary Key (`customer_id`, `email`, `phone`).
+- **Alternate Key:** Any Candidate Key that was *not* chosen as the Primary Key (`email`, `phone`).
+- **Surrogate Key:** A system-generated, meaningless ID (`1, 2, 3...` or `UUID`) used as the Primary Key instead of real-world values like phone numbers that might change.
+- **Composite Key:** A Primary Key made by combining **2 or more columns together** (e.g., `(order_id, product_id)` in the `Order_Items` bridge table, where neither column is unique alone, but their pair is always unique).
+
+---
+
+### 2. Constraints (Guardrails Against Bad Data)
+- **`NOT NULL`:** Column cannot be left empty.
+- **`UNIQUE`:** No two rows can have the same value in this column.
+- **`CHECK`:** Enforces a custom condition (e.g., `price > 0` or `quantity > 0`).
+- **`DEFAULT`:** Automatically inserts a preset value if none is provided (e.g., current timestamp).
+
+---
+
+### 3. Metadata & Data Independence
+- **Metadata (Data Dictionary):** "Data about data"—the database's internal catalog (`INFORMATION_SCHEMA`) storing table names, column types, and constraints. Automated data pipelines inspect this to detect schema changes.
+- **Data Independence:**
+  - *Logical:* Adding new columns or views doesn't break existing queries.
+  - *Physical:* Adding indexes or upgrading storage hardware speeds up queries without changing any SQL code.
+    
