@@ -147,3 +147,19 @@ A strict set of rules placed at the entrance of a pipeline that checks every inc
 3. **Auto-Retries:** Automatically waits and retries failed steps (e.g., if a network blip happens) before marking the job as failed.
 4. **Alerts:** Sends an immediate notification (Slack/Email) if a pipeline breaks so the engineer can fix it.
 </details>
+
+## Topic 10: Safe Re-Runs & Loading Only New Data (Idempotency & Incremental Loads)
+
+<details>
+<summary><b>1. What is the difference between a Full Load and an Incremental Load?</b></summary>
+
+- **Full Load:** Copying the **entire history** of a table from scratch every time the pipeline runs (slow, expensive, wasteful for large data).
+- **Incremental Load:** Saving a bookmark (**Watermark**, like `last_updated_at`) and copying **only the new or updated rows** created since the last successful run (fast, cheap, standard in production).
+</details>
+
+<details>
+<summary><b>2. What does Idempotency mean in a data pipeline?</b></summary>
+
+**Idempotency** means you can run the exact same pipeline **once, twice, or 10 times** for the same day/batch and get the **exact same clean result** with zero duplicate rows.
+- **How it is achieved:** Instead of blindly inserting rows, pipelines use **UPSERT** (`UPDATE` if the ID already exists, `INSERT` if it is new) or delete-and-replace that specific date's partition before loading.
+</details>
