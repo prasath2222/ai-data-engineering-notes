@@ -465,3 +465,29 @@ Customer and product profiles in **Dimension Tables** (`dim_customers`) change o
 | :--- | :--- | :--- |
 | *"Customer wants their money back"* | ❌ Fails if the manual uses the word **"Refund"** instead of **"money back"** | ✅ Instantly finds the **"Refund Policy"** chunk because the *meaning* matches |
 </details>
+
+## Topic 22: Workflow Orchestration (Apache Airflow & Dagster)
+
+<details>
+<summary><b>1. Why are simple clock timers (cron jobs) risky for data pipelines?</b></summary>
+
+If you schedule Step 1 at `6:00 AM` and Step 2 at `6:10 AM` using simple timers, any delay in Step 1 causes Step 2 to run blindly on empty or half-finished data—breaking downstream dashboards and AI models.
+</details>
+
+<details>
+<summary><b>2. What is a Workflow Orchestrator and a DAG?</b></summary>
+
+A **Workflow Orchestrator** (like **Apache Airflow** or **Dagster**) acts as the **"Air Traffic Controller"** of your data platform. You define your pipeline as a **DAG (Directed Acyclic Graph)**—a one-way flowchart with no loops:
+
+`[Pull Sales] ---> [Run dbt Clean] ---> [Update Dashboard]`
+</details>
+
+<details>
+<summary><b>3. What are the 3 main superpowers of Airflow and Dagster?</b></summary>
+
+| Feature | Old Simple Timers (`cron`) | Orchestrator (**Airflow / Dagster**) |
+| :--- | :--- | :--- |
+| **How steps start** | Blindly by clock time (`6:10 AM`) | Only after the previous step finishes cleanly ✅ |
+| **When internet flickers** | Fails silently | Automatically retries `N` times |
+| **When Step 1 fails** | Step 2 still runs on bad/empty data | Halts downstream steps & sends an alert |
+</details>
