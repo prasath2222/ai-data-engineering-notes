@@ -212,3 +212,19 @@ A specialized data pipeline that takes a company's private documents (PDFs, manu
 
 Splitting events (**Fact**) from descriptive profiles (**Dimension**) avoids repeating the same text thousands of times, saves storage, and makes updates clean—if a user changes their city, you update **1 row** in `dim_users` instead of thousands of rows in `fact_orders`.
 </details>
+
+## Topic 14: Core SQL Patterns for Data Engineers (`JOIN`, `GROUP BY`, Window Functions)
+
+<details>
+<summary><b>1. What does JOIN do?</b></summary>
+
+**`JOIN`** stitches two tables together side-by-side using a matching ID column (e.g., looking up a customer's `name` in `dim_users` using their `user_id` from `fact_orders`).
+- **Rule of Thumb:** Data Engineers usually prefer **`LEFT JOIN`** so every row from the main Fact table is kept even if a matching profile is missing.
+</details>
+
+<details>
+<summary><b>2. What is the difference between GROUP BY and a Window Function?</b></summary>
+
+- **`GROUP BY` (Squashes Rows):** Collapses many individual rows into a short summary table (e.g., squashing 100 Tea and Coffee orders down into **2 summary rows** showing total sales per item).
+- **Window Function — `OVER (...)` (Keeps All Rows):** Performs calculations across rows (like **running totals**, **rankings**, or **numbering duplicate rows**) and adds the result as a **new column** without deleting or collapsing any existing rows.
+</details>
