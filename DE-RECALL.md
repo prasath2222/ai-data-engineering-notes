@@ -528,3 +528,82 @@ A **Workflow Orchestrator** (like **Apache Airflow** or **Dagster**) acts as the
 | **Analogy** | Airport conveyor belt | 50 workers splitting giant paperwork |
 | **Does heavy math?** | ❌ No | ✅ Yes |
 </details>
+
+## Topic 24: Data Governance, Security & Observability
+
+<details>
+<summary><b>1. What is Data Governance & a Data Catalog?</b></summary>
+
+**Data Governance** is the set of rules, ownership, and documentation that keeps company data organized and trustworthy.
+- **Data Catalog (e.g., Unity Catalog, DataHub):** Acts like a **library index card system**—a searchable directory showing every official table, what each column means, who owns it, and **Data Lineage** (a visual map tracing where every column came from).
+</details>
+
+<details>
+<summary><b>2. What is Data Security & PII Protection?</b></summary>
+
+**PII (Personally Identifiable Information)** is any data that can identify a real person (name, phone number, email, government ID, address, bank details). Data Engineers protect it using:
+- **RBAC (Role-Based Access Control):** Users only access tables and columns required for their job role.
+- **Data Masking & Hashing:** Hiding real values (`98XXXXXX10`) or converting emails/phones into irreversible scrambled codes (`a8f9c2...`) so analysts can still count unique users without seeing who they are.
+- **Encryption:** Locking data **at rest** (stored on disk) and **in transit** (moving over the network).
+</details>
+
+<details>
+<summary><b>3. What is Data Observability?</b></summary>
+
+**Data Observability** (using tools like **Monte Carlo** or **Elementary**) acts like a **kitchen smoke detector**—continuously monitoring pipelines and alerting engineers when something silently breaks across **4 vital signs**:
+1. **Freshness:** Did today's data arrive on time, or is the table stale?
+2. **Volume:** Did the expected 100,000 rows arrive, or only 12 rows?
+3. **Schema Changes:** Did someone unexpectedly rename or delete a column?
+4. **Distribution:** Did values suddenly go crazy (e.g., average tea price jumping from `₹20` to `₹20,000`)?
+</details>
+
+<details>
+<summary><b>4. Summary Comparison</b></summary>
+
+| Pillar | Simple Analogy | Main Question It Answers |
+| :--- | :--- | :--- |
+| **Data Governance (Catalog)** | Library index & rulebook | *"Where is the official table, who owns it, and where did it come from?"* |
+| **Data Security (RBAC & Masking)** | Bank vault & blurred ID cards | *"Who is allowed to see sensitive customer details (PII)?"* |
+| **Data Observability** | Kitchen smoke detector | *"Is my data fresh, complete, and normal right now?"* |
+</details>
+
+## Topic 25: End-to-End Data Engineering Architecture (Master Blueprint)
+
+<details>
+<summary><b>1. How do all 25 Data Engineering concepts fit together?</b></summary>
+
+```text
+[1. SOURCES]          [2. INGESTION]         [3. LAKEHOUSE STORAGE]       [4. TRANSFORM & AI]       [5. SERVING]
+Live App DB (OLTP) ──> CDC + Kafka ─────────> Raw Zone (Bronze) ─────────> Apache Spark & dbt ─────> BI Dashboards
+(Orders, Users)       (Live Stream)          (Parquet + Iceberg)          (Staging -> Marts)        (Executive Charts)
+                                                    │                            │
+PDF Manuals ─────────> Python Loader ───────────────┘                            ├──> Star Schema ─────> ML Predictions
+(Recipes, Rules)      (Batch)                                                    │    (Fact & Dim)
+                                                                                 │
+                                                                                 └──> Chunk & Embed ───> Vector DB (RAG)
+                                                                                                         (Staff AI Bot)
+========================================================================================================================
+[6. CONTROL PLANE — WRAPS AROUND EVERY LAYER]
+• Orchestration: Airflow / Dagster (DAGs)   • Governance & Security: Data Catalog, RBAC, PII Masking   • Observability
+```
+</details>
+
+<details>
+<summary><b>2. Step-by-Step Lifecycle of Data Across All 6 Layers</b></summary>
+
+| Stage | What Happens | Key Tools & Concepts Used |
+| :--- | :--- | :--- |
+| **1. Sources** | App records live transactions while documents sit in files. | **OLTP** (PostgreSQL with **Indexes**), PDFs, CSVs |
+| **2. Ingestion** | Moves changes safely without slowing down the live app. | **CDC** (Debezium), **Apache Kafka** (Streaming), **Idempotent** Batch loaders |
+| **3. Storage** | Stores massive data cheaply with crash safety and fast scans. | Data Lakehouse (**Parquet**, **Partitioning**, **Apache Iceberg / Delta Lake**) |
+| **4. Transform & AI** | Cleans, tests, shapes tables, and prepares text for AI. | **Apache Spark**, **`dbt`** (`Staging -> Intermediate -> Marts`), **Star Schema**, **SCD Type 2**, **Chunking & Embeddings** |
+| **5. Serving** | Delivers fast answers to humans, ML models, and AI bots. | **OLAP** Warehouse (`fact_sales`, `dim_customers`), **Vector DB** (`pgvector` / Pinecone) |
+| **6. Control Plane** | Automates, secures, and monitors the entire platform. | **Airflow / Dagster** (DAGs), **Data Catalog**, **RBAC & PII Masking**, **Data Observability** |
+</details>
+
+<details>
+<summary><b>3. Interview-Ready Answer: Separating App Traffic & Serving AI</b></summary>
+
+- **Problem:** Analysts running heavy queries crash the live **OLTP** app database, and an LLM needs updated PDF return policies.
+- **Solution:** Use **CDC + Kafka** to stream live app changes into a **Data Lakehouse (Parquet + Iceberg)** without touching the live database, transform the data via **`dbt`** into a **Star Schema** for analysts, and run an **Orchestrated (Airflow/Dagster)** pipeline that **Chunks and Embeds** updated PDF policies into a **Vector Database** for **RAG**.
+</details>
