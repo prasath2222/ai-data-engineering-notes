@@ -130,3 +130,20 @@ A fast analytical system that holds **only cleaned, structured data** neatly org
 
 A strict set of rules placed at the entrance of a pipeline that checks every incoming record's data type and valid range (e.g., `age > 0`, `email` is not blank) so corrupted data is rejected automatically instead of breaking downstream dashboards or AI models.
 </details>
+
+## Topic 9: Orchestration (Running Pipelines Automatically)
+
+<details>
+<summary><b>1. What is Orchestration in Data Engineering?</b></summary>
+
+**Orchestration** is the automated system (like **Prefect**, **Apache Airflow**, or **Cron**) that schedules, runs, and monitors data pipelines automatically without human clicks.
+</details>
+
+<details>
+<summary><b>2. What are the 4 main jobs of an Orchestrator?</b></summary>
+
+1. **Scheduling:** Runs pipelines automatically on a timer (e.g., every hour or at `2:00 AM` every night).
+2. **Dependencies:** Enforces the exact order of steps (Step 2 waits until Step 1 succeeds; Step 3 is blocked if Step 2 fails).
+3. **Auto-Retries:** Automatically waits and retries failed steps (e.g., if a network blip happens) before marking the job as failed.
+4. **Alerts:** Sends an immediate notification (Slack/Email) if a pipeline breaks so the engineer can fix it.
+</details>
