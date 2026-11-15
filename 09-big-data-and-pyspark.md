@@ -95,3 +95,87 @@ Not all transformations are equal. Spark groups them into two speeds:
 | **Transformation** | Writing on a shopping list (`.filter`, `.select`) | **Lazy**—records steps in a plan without touching data yet. |
 | **Action** | Walking to the cash register (`.show`, `.write`) | Triggers the optimizer and runs the whole plan at once. |
 | **Shuffle** | Workers mailing boxes to each other across the room | Network data transfer during `.groupBy()` or `.join()`; expensive! |
+## 5. Broadcast Join — "Giving Every Worker a Photocopy of the Small Lookup Book"
+
+Suppose your pipeline needs to join two tables:
+- **`Fact_Sales` (Huge):** **200 GB** of orders spread across 20 Executor computers.
+- **`Dim_Product` (Tiny):** **5 MB** lookup table with 2,000 product names.
+
+### A. Normal Join (Slow — Shuffles 200 GB Across the Network)
+- By default, Spark shuffles **both** tables across the network so matching `product_id` rows land on the same worker machine.
+- Moving 200 GB of sales rows over the network wastes minutes and slows down your cluster.
+
+### B. Broadcast Join (Blazing Fast — Zero Shuffle!)
+- Because `Dim_Product` is tiny (5 MB), you tell the Driver to **mail a full photocopy of `Dim_Product` directly into every Executor's RAM**:
+```python
+from pyspark.sql.functions import broadcast
+
+# Sends the small table to every worker's RAM so the 200 GB table never moves!
+joined_df = fact_sales.join(broadcast(dim_product), on="product_id", how="inner")
+```
+- **Why it is 10x faster:** Every worker already has the full product list in its own pocket, so **zero rows of the 200 GB `Fact_Sales` table ever move across the network**.
+- **Rule of Thumb:** Use `broadcast()` whenever joining a giant Fact table with a small Dimension/lookup table (typically under **10 MB to 100 MB**).
+
+---
+
+## 6. Data Skew — "One Cashier Gets 10,000 Customers While 19 Cashiers Stand Idle"
+
+### What is Data Skew?
+Suppose you run `.groupBy("city")` across 20 worker computers:
+- **Worker 1** gets `"Chennai"` $\rightarrow$ **80 million rows** (takes **45 minutes** to finish!).
+- **Workers 2–20** get small towns $\rightarrow$ **5,000 rows each** (finish in **2 seconds** and sit completely idle!).
+
+Your Spark progress bar gets **stuck at 99% complete** (`199/200 tasks finished`) waiting for that single overloaded worker—and sometimes Worker 1 runs out of RAM and crashes (`OutOfMemoryError`). That uneven pile-up of rows on one partition is called **Data Skew** (most often caused by one dominant key or millions of `NULL` values).
+
+### How Data Engineers Fix Data Skew
+1. **Salting ("Splitting One Giant Line Into 10 Shorter Lines"):**
+   - Attach a random number (`0` to `9`) to the overloaded key (`Chennai_0`, `Chennai_1`, ..., `Chennai_9`) so those 80 million rows split evenly across **10 workers instead of 1**.
+   - Sum each salted bucket in parallel first, then remove the salt and add the 10 subtotals together.
+2. **Adaptive Query Execution (AQE):**
+   - Modern Spark (Spark 3.0+) includes **AQE** (`spark.sql.adaptive.enabled = true`), which automatically detects oversized partitions at runtime and splits them across idle workers for you.
+
+---
+
+## 7. Complete Real-World PySpark ETL Script
+
+Here is what a clean, production-style daily PySpark pipeline looks like from start to finish:
+
+```python
+from pyspark.sql import SparkSession
+from pyspark.sql.functions import col, sum as _sum, broadcast
+
+# 1. Start the Spark Engine
+spark = SparkSession.builder.appName("DailyCategorySalesETL").getOrCreate()
+
+# 2. EXTRACT: Read yesterday's raw Parquet sales & small product lookup table
+sales_df = spark.read.parquet("s3://company-bucket/raw/sales/sale_date=2026-11-15/")
+products_df = spark.read.parquet("s3://company-bucket/raw/products/")
+
+# 3. TRANSFORM: Filter bad rows, Broadcast Join product info, and aggregate revenue
+clean_summary_df = (
+    sales_df
+    .filter(col("amount") > 0)                                    # Drop cancelled or ₹0 orders
+    .join(broadcast(products_df), on="product_id", how="inner")   # Fast Broadcast Join (no shuffle!)
+    .groupBy("category", "city")
+    .agg(_sum("amount").alias("total_revenue"))
+)
+
+# 4. LOAD: Write finished Parquet output (overwrite mode guarantees Idempotency!)
+(
+    clean_summary_df
+    .write
+    .mode("overwrite")
+    .parquet("s3://company-bucket/warehouse/daily_category_sales/sale_date=2026-11-15/")
+)
+```
+
+---
+
+## Module 9 Complete Quick Memory Table
+| Concept | Simple Analogy | Key Takeaway |
+| :--- | :--- | :--- |
+| **Driver & Executors** | Construction manager & workers | Driver plans tasks; Executors read partitions and crunch data in parallel. |
+| **Lazy Evaluation** | Writing the whole shopping list first | Transformations build a plan; Actions (`.show`, `.write`) trigger execution. |
+| **Shuffle** | Workers mailing boxes across the network | Happens during `.groupBy()` and normal `.join()`; expensive! |
+| **Broadcast Join** | Photocopying a small book for every worker | Copies a tiny lookup table to all Executors so the huge table never shuffles. |
+| **Data Skew** | 1 cashier with 10,000 people, 19 idle | Uneven key distribution stalls Spark at 99%; fixed with **Salting** or **AQE**. |
