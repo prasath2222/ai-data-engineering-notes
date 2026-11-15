@@ -320,3 +320,34 @@ A **Window Function (`OVER (...)`)** calculates totals, rankings, or row numbers
 | **Where It Lives** | Data Lakes & Warehouses (OLAP) | Live App Databases (OLTP) |
 | **Best For** | Skipping millions of irrelevant rows (e.g., filtering by `date`) | Finding **1 exact row** instantly (e.g., `user_id = 84920`) |
 </details>
+
+## Topic 17: Open Table Formats (Apache Iceberg & Delta Lake — The "Lakehouse")
+
+<details>
+<summary><b>1. Why are plain Parquet files in a Data Lake not enough on their own?</b></summary>
+
+Plain Parquet files are locked once written (like printed receipts), which creates **3 problems**:
+1. **Cannot easily edit or delete 1 row:** Fixing a single wrong price requires manually rewriting huge files.
+2. **Crashes leave half-finished data:** If a pipeline crashes after saving 1 out of 2 files, analysts see broken, incomplete numbers.
+3. **No Undo button:** If a buggy script overwrites or deletes a file, the old version is lost.
+</details>
+
+<details>
+<summary><b>2. How do Apache Iceberg and Delta Lake solve this?</b></summary>
+
+They keep your cheap Parquet files in the Data Lake and add a smart **"Master Register Book" (Transaction Log)** on top—working just like **Google Docs Version History** to turn a Data Lake into a **Data Lakehouse**:
+
+| Version | What Happened | Which File the Register Shows to Users |
+| :--- | :--- | :--- |
+| **Version 1** | Morning sales saved | `day1.parquet` *(contains a ₹300 typo)* |
+| **Version 2** | You fix Coffee price to ₹30 | `day1_fixed.parquet` *(creates a clean file and updates the Register)* |
+| **Version 3** | Tonight's script crashes halfway | **Still shows `day1_fixed.parquet`!** *(hides half-written files until 100% done)* |
+</details>
+
+<details>
+<summary><b>3. What are the 3 Lakehouse superpowers?</b></summary>
+
+1. **Crash Safety (ACID Transactions):** Half-written files stay completely invisible until a pipeline finishes 100% cleanly.
+2. **Easy `UPDATE` & `DELETE`:** Lets you edit or delete single rows cleanly—the Register Book creates the updated file behind the scenes.
+3. **Time Travel (Built-in Undo):** Lets you query past versions or instantly roll back (`Version 2 -> Version 1`) if a bad pipeline corrupts today's data.
+</details>
