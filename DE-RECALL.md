@@ -211,7 +211,9 @@ A specialized data pipeline that takes a company's private documents (PDFs, manu
 <summary><b>2. Why do Data Engineers use Star Schema instead of one giant table?</b></summary>
 
 Splitting events (**Fact**) from descriptive profiles (**Dimension**) avoids repeating the same text thousands of times, saves storage, and makes updates clean—if a user changes their city, you update **1 row** in `dim_users` instead of thousands of rows in `fact_orders`.
+
 </details>
+
 ## Topic 14: Core SQL Patterns (`GROUP BY`, Window Functions, `JOIN`)
 
 <details>
@@ -267,4 +269,21 @@ A **Window Function (`OVER (...)`)** calculates totals, rankings, or row numbers
 | Order | Customer ID | **Name (from Table B)** | Item |
 | :--- | :--- | :--- | :--- |
 | 1 | C1 | **Arun** | Tea |
+</details>
+## Topic 15: File Formats for Big Data (CSV vs. JSON vs. Parquet)
+
+<details>
+<summary><b>1. How do CSV and JSON store data on disk?</b></summary>
+
+**Row-by-Row Storage:** They store one complete row after another (`[1, Tea, 20] -> [2, Coffee, 30]`).
+- **The Problem:** If a table has 50 columns and you only need to add up 1 column (`Price`), the computer is still forced to read all 50 columns—making queries slow and expensive.
+</details>
+
+<details>
+<summary><b>2. What is Apache Parquet and why do Data & AI Engineers prefer it?</b></summary>
+
+**Column-by-Column Storage:** Parquet groups each column together separately on disk (e.g., all `Orders` together, all `Prices` together).
+1. **10x–100x Faster Queries:** Reads only the exact columns your query asks for and completely skips the rest.
+2. **Up to 80% Smaller Size:** Compresses identical data types sitting next to each other tightly, cutting cloud storage bills.
+3. **Preserves Data Types:** Unlike CSV (all plain text), Parquet remembers whether each column is a number, date, or string.
 </details>
