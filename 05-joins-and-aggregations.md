@@ -117,3 +117,99 @@ FULL OUTER JOIN Orders
 | **`LEFT JOIN`** | **All** rows from Left table + matching rows from Right. | `NULL` on the Right |
 | **`RIGHT JOIN`** | **All** rows from Right table + matching rows from Left. | `NULL` on the Left |
 | **`FULL OUTER JOIN`** | **All** rows from **both** Left and Right tables. | `NULL` on whichever side is missing |
+## 4. SQL Aggregations (Crunching Many Rows Into One Summary)
+
+An **Aggregation** squashes hundreds or millions of individual rows down into a clean summary report—like looking at 500 daily shop receipts and asking *"How much total money did we make today?"*
+
+### Sample `Orders` Table Used Below
+| order_id | customer_name | item | amount |
+| :--- | :--- | :--- | :--- |
+| **101** | Arun | Laptop | 50,000 |
+| **102** | Arun | Mouse | 500 |
+| **103** | Priya | Keyboard | 1,500 |
+| **104** | Priya | Monitor | 12,000 |
+| **105** | Karthik | Cable | 300 |
+
+---
+
+### A. The 5 Basic Summary Functions (Whole Table)
+When you want **one single total** across the entire table:
+- **`COUNT(*)`** — Counts how many rows exist (`5` orders). *(Note: `COUNT(column_name)` ignores `NULL` rows, while `COUNT(*)` counts every row).*
+- **`SUM(amount)`** — Adds all numbers together (`64,300`).
+- **`AVG(amount)`** — Calculates the average (`12,860`).
+- **`MAX(amount)`** — Finds the highest value (`50,000`).
+- **`MIN(amount)`** — Finds the lowest value (`300`).
+
+```sql
+SELECT
+  COUNT(*) AS total_orders,
+  SUM(amount) AS total_revenue,
+  AVG(amount) AS avg_order_value
+FROM Orders;
+```
+- **Result:** `total_orders = 5`, `total_revenue = 64,300`, `avg_order_value = 12,860`.
+
+---
+
+### B. `GROUP BY` — "Sorting Rows into Buckets First"
+When you want separate totals **per customer**, **per city**, or **per day**, `GROUP BY` sorts the rows into separate buckets before running `COUNT` or `SUM`:
+- **Arun's Bucket:** Laptop (`50,000`) + Mouse (`500`) $\rightarrow$ **2 orders, `50,500` total**
+- **Priya's Bucket:** Keyboard (`1,500`) + Monitor (`12,000`) $\rightarrow$ **2 orders, `13,500` total**
+- **Karthik's Bucket:** Cable (`300`) $\rightarrow$ **1 order, `300` total**
+
+```sql
+SELECT
+  customer_name,
+  COUNT(*) AS order_count,
+  SUM(amount) AS total_spent
+FROM Orders
+GROUP BY customer_name;
+```
+- **Result:**
+| customer_name | order_count | total_spent |
+| :--- | :--- | :--- |
+| Arun | 2 | 50,500 |
+| Priya | 2 | 13,500 |
+| Karthik | 1 | 300 |
+- **Golden Rule of `GROUP BY`:** Every column in your `SELECT` line must either be **inside a summary function** (`COUNT`, `SUM`, `AVG`) OR **listed in `GROUP BY`**.
+
+---
+
+### C. `WHERE` vs. `HAVING` — "Filter Before Buckets vs. Filter After Buckets"
+Both filter data, but they run at **different times** in the query:
+
+1. **`WHERE` (Runs BEFORE `GROUP BY`):** Throws out individual rows **before** putting anything into buckets.
+   ```sql
+   -- Only count expensive items over 1,000
+   SELECT customer_name, SUM(amount) AS total_spent
+   FROM Orders
+   WHERE amount > 1000
+   GROUP BY customer_name;
+   ```
+   - **What happens:** Arun's `500` Mouse and Karthik's `300` Cable are thrown away first. Only Laptop (`50,000`), Keyboard (`1,500`), and Monitor (`12,000`) go into buckets.
+   - **Result:** Arun = `50,000`, Priya = `13,500` (Karthik is gone completely).
+
+2. **`HAVING` (Runs AFTER `GROUP BY`):** Creates all buckets and adds up the totals **first**, then throws away finished buckets that fail the condition.
+   ```sql
+   -- Find VIP customers whose TOTAL spending is over 10,000
+   SELECT customer_name, SUM(amount) AS total_spent
+   FROM Orders
+   GROUP BY customer_name
+   HAVING SUM(amount) > 10000;
+   ```
+   - **What happens:** SQL adds up every bucket first (`Arun = 50,500`, `Priya = 13,500`, `Karthik = 300`), and **then** `HAVING` drops Karthik because his total is below `10,000`.
+   - **Why `WHERE SUM(amount) > 10000` causes an error:** Because `WHERE` runs *before* `GROUP BY`, `SUM(amount)` hasn't been calculated yet!
+
+---
+
+## Module 5 Quick Memory Table
+| Keyword | Plain-English Job | When It Runs |
+| :--- | :--- | :--- |
+| **`GROUP BY`** | Splits rows into separate buckets (e.g., per customer). | After `WHERE` |
+| **`WHERE`** | Filters **individual rows** before buckets are created. | Before `GROUP BY` |
+| **`HAVING`** | Filters **finished bucket totals** (`SUM`, `COUNT`) after grouping. | After `GROUP BY` |
+
+
+
+
+
