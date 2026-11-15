@@ -19,4 +19,25 @@
 - **What happens if the server crashes after Step 1?**
   - Without Atomicity: Arun loses ₹500, Priya gets ₹0, and ₹500 vanishes.
   - With Atomicity: Because Step 2 never finished, the database automatically runs a **`ROLLBACK`** when it restarts—restoring Arun's ₹500.
-  - 
+    
+### C — Consistency ("Follow the Rules Before & After")
+- **The Rule:** Every transaction must take the database from one valid state to another valid state—never violating table constraints (`CHECK`, `NOT NULL`, `FOREIGN KEY`) or business rules.
+- **Example:** If `Accounts` has `CHECK (balance >= 0)` and Arun only has ₹300, trying to transfer ₹500 fails the rule and triggers an automatic **`ROLLBACK`** so his balance never becomes `-200`.
+
+### I — Isolation ("Don't Step on Each Other's Toes")
+- **The Rule:** Concurrent transactions running at the exact same time cannot see each other's half-finished (uncommitted) work—each behaves as if it is running alone.
+- **Example:** If Arun has ₹500 and triggers two ₹500 transfers at the exact same millisecond, Isolation ensures one finishes (`COMMIT`) before the other reads the balance—preventing double-spending.
+
+### D — Durability ("Once Committed, It's Permanent")
+- **The Rule:** Once a transaction hits **`COMMIT`**, its changes are permanently saved to non-volatile disk (using a **Write-Ahead Log / WAL**) and survive power outages or server crashes.
+- **Example:** Once a payment confirmation is sent, a power cut 1 millisecond later will not erase the transaction.
+
+---
+
+## ACID Quick Cheat Sheet
+| Letter | Name | Core Promise | Real-World Failure Prevented |
+| :--- | :--- | :--- | :--- |
+| **A** | **Atomicity** | All steps succeed, or all undo (`ROLLBACK`). | Money deducted from sender, never reaches receiver. |
+| **C** | **Consistency** | All constraints (`CHECK`, `FK`) stay valid. | Account balance dropping to `-200`. |
+| **I** | **Isolation** | Parallel transactions don't corrupt each other. | Double-spending ₹500 twice at the exact same second. |
+| **D** | **Durability** | Committed data survives crashes (WAL). | Confirmed payment vanishing after a power cut. |
