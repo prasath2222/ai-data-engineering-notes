@@ -179,3 +179,17 @@ A specialized data pipeline that takes a company's private documents (PDFs, manu
 2. **Chunking:** Slicing long documents into small, bite-sized paragraphs (300–500 words with slight overlap) so the AI only reads the exact relevant sections instead of processing a massive file every time.
 3. **Embeddings & Vector Database:** Converting each text chunk into a list of numbers (**Embedding**) that captures its *meaning*, and storing them in a **Vector Database** (like **pgvector**, **Qdrant**, or **Pinecone**) for instant semantic search.
 </details>
+
+## Topic 12: Putting It All Together (End-to-End Architecture)
+
+<details>
+<summary><b>1. How do all 11 Data Engineering building blocks connect in a real company?</b></summary>
+
+1. **Live App Sources (OLTP & Data Shapes):** User orders live in an **OLTP App Database** (Structured), click events arrive as **JSON** (Semi-Structured), and manuals/docs arrive as **PDFs** (Unstructured).
+2. **Scheduled Pickup (Orchestration, Batch & Incremental):** An **Orchestrator** (Prefect / Airflow) wakes up on a **Batch** schedule (e.g., `2:00 AM` nightly) and uses a **Watermark (Incremental Load)** to pull *only* new records since the last run.
+3. **Raw Storage (ELT & Data Lake):** Following **ELT**, raw files land untouched in a **Data Lake** (S3 / GCS) first so original data is never lost.
+4. **Cleaning & Safety (Quality, Contracts & Idempotency):** Pipelines enforce **Data Contracts**, remove duplicates, handle `NULL`s, standardize formats, and use **UPSERT** so re-runs are **Idempotent** (zero duplicates).
+5. **Serving Layer (Data Warehouse & Vector DB):**
+   - Clean structured tables load into a **Data Warehouse (OLAP)** for fast analytics and ML without slowing down the live app.
+   - Clean text documents are **Chunked**, converted into **Embeddings**, and stored in a **Vector Database** to power **RAG** AI chatbots.
+</details>
