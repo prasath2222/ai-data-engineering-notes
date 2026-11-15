@@ -73,3 +73,54 @@ If `(employee_id, project_id)` is your Primary Key, keeping columns that only ca
 | E1 | P10 | 40 |
 | E1 | P20 | 25 |
 | E2 | P10 | 35 |
+
+## Step 3: Third Normal Form (`3NF`) — "No Chain Dependencies"
+
+### 1. The 2 Strict Rules for `3NF`
+1. The table must already pass **`1NF`** (one value per cell) and **`2NF`** (no half-key repeats).
+2. **No Transitive (Chain) Dependencies:** Every regular column must depend **directly and only** on the Primary Key—never on another regular column (`Primary Key -> Column A -> Column B` is not allowed).
+
+### 2. Why It Matters
+Even with a single Primary Key (`student_id`), keeping `hostel_warden` and `warden_phone` inside the `Students` table causes repeats—because the warden belongs to the **`hostel_code`**, not to the individual student. If Mr. Kumar changes his phone number, you would have to update hundreds of student rows.
+
+---
+
+### 3. Before `3NF` (Messy — Chain dependency: `student_id -> hostel_code -> warden`)
+*Primary Key = `student_id`*
+
+| student_id (PK) | student_name | hostel_code | hostel_warden | warden_phone |
+| :--- | :--- | :--- | :--- | :--- |
+| **101** | Rahul | H1 | **Mr. Kumar** | **9876500001** |
+| **102** | Divya | H2 | Mrs. Latha | 9876500002 |
+| **103** | Sanjay | H1 | **Mr. Kumar** | **9876500001** |
+
+- `student_name` and `hostel_code` depend **directly on `student_id`**.
+- `hostel_warden` and `warden_phone` depend **on `hostel_code`**, not `student_id`.
+
+---
+
+### 4. After `3NF` (Clean — Split into `Students` and `Hostels`)
+
+**1. `Students`** *(Depends only on `student_id`)*
+| student_id (PK) | student_name | hostel_code (FK) |
+| :--- | :--- | :--- |
+| 101 | Rahul | H1 |
+| 102 | Divya | H2 |
+| 103 | Sanjay | H1 |
+
+**2. `Hostels`** *(Depends only on `hostel_code`)*
+| hostel_code (PK) | hostel_warden | warden_phone |
+| :--- | :--- | :--- |
+| H1 | Mr. Kumar | 9876500001 |
+| H2 | Mrs. Latha | 9876500002 |
+
+---
+
+## Module 2 Summary Cheat Sheet
+- **`1NF` (One Value Per Box):** No comma-separated lists inside a single cell.
+- **`2NF` (No Half-Key Repeats):** Every column must depend on the **entire** Primary Key, not just half of a Composite Key.
+- **`3NF` (No Chain Dependencies):** Every column must depend **only** on the Primary Key, never on another regular column.
+- **OLTP vs. OLAP Rule (Data Engineering):**
+  - **App Databases (OLTP — PostgreSQL, MySQL):** Keep tables in **`3NF`** so updates are clean and data never goes out of sync.
+  - **Data Warehouses (OLAP — BigQuery, Snowflake, DuckDB):** Often **Denormalize** (merge tables back into Star Schemas) so analytical reports on millions of rows run fast without heavy joins.
+    
