@@ -377,3 +377,33 @@ They keep your cheap Parquet files in the Data Lake and add a smart **"Master Re
 2. **Built-in Data Tests:** Runs automated checks (like `unique` and `not_null`) before publishing tables so broken numbers never reach dashboards.
 3. **Git Version Control & Docs:** Stores every SQL model in GitHub for peer review and auto-generates a visual lineage map showing where every column came from.
 </details>
+
+## Topic 19: Change Data Capture — CDC (Streaming Live Database Edits)
+
+<details>
+<summary><b>1. What is the problem with checking a live database using timestamps?</b></summary>
+
+Checking a live app database with `WHERE updated_at > last_run` has **2 blind spots**:
+1. **Deleted rows vanish silently:** If a customer cancels an order and the row is erased from the live app table, a later timestamp query never sees it—leaving "ghost" cancelled orders inside your Data Warehouse.
+2. **Slows down the live app:** Repeatedly scanning the live database puts extra load on real customers.
+</details>
+
+<details>
+<summary><b>2. How does Change Data Capture (CDC) work?</b></summary>
+
+Instead of interrupting the live database tables, **CDC** (using tools like **Debezium**) quietly reads the database's internal append-only log file (**Write-Ahead Log / Binlog**)—just like watching a **cash machine paper roll** where nothing can ever be erased:
+
+| What Happens at the Tea Shop Counter | Line Printed on the Paper Roll | What CDC Does to the Data Warehouse |
+| :--- | :--- | :--- |
+| **10:00 AM:** Customer orders Tea | `NEW: Order #1, Tea, ₹20` | Adds `Order #1` |
+| **10:02 AM:** Price fixed to ₹25 | `CHANGED: Order #1, ₹20 -> ₹25` | Updates price to `₹25` |
+| **10:05 AM:** Customer cancels | `DELETED: Order #1` | Removes `Order #1` |
+</details>
+
+<details>
+<summary><b>3. What are the 3 main benefits of CDC?</b></summary>
+
+1. **Captures `DELETE`s Accurately:** Because every `DELETE` is recorded on the log roll, the Data Warehouse removes cancelled rows and stays 100% synced.
+2. **Zero Extra Load on the Live App:** Reading the log file never slows down live customer traffic.
+3. **Real-Time Updates:** Streams every `INSERT`, `UPDATE`, and `DELETE` into Kafka, Data Lakehouses, or Vector Databases within seconds.
+</details>
