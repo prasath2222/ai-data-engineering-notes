@@ -41,3 +41,18 @@
 | **C** | **Consistency** | All constraints (`CHECK`, `FK`) stay valid. | Account balance dropping to `-200`. |
 | **I** | **Isolation** | Parallel transactions don't corrupt each other. | Double-spending ₹500 twice at the exact same second. |
 | **D** | **Durability** | Committed data survives crashes (WAL). | Confirmed payment vanishing after a power cut. |
+
+## 3. Locks (How Databases Enforce Isolation)
+When multiple users access the same row simultaneously, databases use **Locks** to prevent race conditions and overwritten data:
+- **Shared Lock (Read Lock):** Triggered during `SELECT` queries. Multiple users can read the same row at the same time, but nobody can modify it until readers finish.
+- **Exclusive Lock (Write Lock):** Triggered during `INSERT`, `UPDATE`, or `DELETE`. Only **one** transaction can hold an Exclusive Lock on a row at a time—all other transactions must wait until `COMMIT` or `ROLLBACK` releases the lock.
+
+---
+
+## 4. Deadlocks ("Stuck in a Narrow Doorway")
+- **What is a Deadlock?** When two transactions hold locks that the other needs, causing both to wait forever:
+  1. **Transaction A** locks Row 1, then waits for Row 2.
+  2. **Transaction B** locks Row 2, then waits for Row 1.
+- **How Databases Resolve It:** The database's **Deadlock Detector** spots the circular wait within milliseconds, kills one transaction (the **"victim"**) via **`ROLLBACK`**, frees its lock so the other finishes, and returns a deadlock error so the application can retry.
+- **How Engineers Prevent It:** Always access and lock rows/tables in a **consistent order** (e.g., always lock lower IDs before higher IDs) and keep transactions short.
+  
