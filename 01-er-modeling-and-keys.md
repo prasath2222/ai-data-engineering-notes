@@ -54,4 +54,37 @@
 - **Cardinality:** Defines how many rows in one table can connect to rows in another table.
 - **One-to-Many (`1:N`):** The most common relationship in databases. **One** parent row (`Customer`) can connect to **many** child rows (`Orders`), while each child row belongs to **only one** parent.
 - **Golden Rule:** Always place the **Foreign Key** on the **"Many"** side (`Orders` gets `customer_id`).
-- 
+
+  ## Part 3: One-to-One (1:1) & Many-to-Many (M:N) Relationships
+
+### 1. One-to-One (1:1)
+- **What it is:** 1 row in Table A connects to **at most 1** row in Table B (and vice versa).
+- **Example:** `Customers` $\leftrightarrow$ `Customer_Profiles` (storing optional delivery address or loyalty card info separately from basic login/contact info).
+- **How to build it:** Put the **Foreign Key** in the second table and mark it **`UNIQUE`** so no customer gets two profiles.
+
+---
+
+### 2. Many-to-Many (M:N) & Bridge Tables
+- **What it is:** Many rows in Table A connect to many rows in Table B.
+- **Example:** One `Order` can include **many** `Products` (Tea + Biscuit), and one `Product` (Masala Tea) appears in **many** `Orders`.
+- **Golden Rule:** Databases cannot link `M:N` directly between two tables. You must create a **3rd Bridge (Junction) Table** in the middle (`Order_Items`) holding Foreign Keys from both parent tables.
+
+**Example: Splitting `M:N` with `Order_Items`**
+
+`Orders`
+| order_id (PK) | customer_id (FK) | order_date |
+| :--- | :--- | :--- |
+| 101 | 1 | 2026-11-15 |
+
+`Products`
+| product_id (PK) | name | price |
+| :--- | :--- | :--- |
+| 10 | Masala Tea | 20 |
+| 20 | Biscuit | 10 |
+
+`Order_Items` (Bridge Table)
+| order_id (FK) | product_id (FK) | quantity |
+| :--- | :--- | :--- |
+| 101 | 10 | 2 |
+| 101 | 20 | 1 |
+
