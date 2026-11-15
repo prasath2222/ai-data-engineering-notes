@@ -113,3 +113,20 @@ A fast analytical system that holds **only cleaned, structured data** neatly org
 - **Examples:** Google BigQuery, Snowflake.
 - **Why Analysts use it:** Dashboards and business reports run super fast because the data is already cleaned and structured.
 </details>
+
+## Topic 8: What Happens Inside "Cleaning" (Data Quality & Validation)
+
+<details>
+<summary><b>1. What are the 4 main problems Data Engineers fix when cleaning raw data?</b></summary>
+
+1. **Duplicate Rows (Deduplication):** Network glitches often save the exact same event twice. Keeping only one unique record per ID prevents double-counting revenue or users.
+2. **Missing Values (NULLs):** Blank fields can crash calculations or AI pipelines. Fix by filling safe defaults (like `'Unknown'`) or dropping rows missing critical IDs.
+3. **Wrong Formats & Data Types:** Converting messy dates (`"15-11-2026"`, `"Nov 15, 2026"`) and text numbers (`"₹500"`) into one strict standard format (`2026-11-15` and pure number `500`).
+4. **Impossible / Corrupt Values (Data Validation):** Blocking broken values (like `age = -5` or negative prices) using strict validation rules (**Data Contracts**) before bad rows enter the database.
+</details>
+
+<details>
+<summary><b>2. What is a Data Contract?</b></summary>
+
+A strict set of rules placed at the entrance of a pipeline that checks every incoming record's data type and valid range (e.g., `age > 0`, `email` is not blank) so corrupted data is rejected automatically instead of breaking downstream dashboards or AI models.
+</details>
