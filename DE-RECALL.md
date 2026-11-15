@@ -269,7 +269,9 @@ A **Window Function (`OVER (...)`)** calculates totals, rankings, or row numbers
 | Order | Customer ID | **Name (from Table B)** | Item |
 | :--- | :--- | :--- | :--- |
 | 1 | C1 | **Arun** | Tea |
+
 </details>
+
 ## Topic 15: File Formats for Big Data (CSV vs. JSON vs. Parquet)
 
 <details>
@@ -286,4 +288,35 @@ A **Window Function (`OVER (...)`)** calculates totals, rankings, or row numbers
 1. **10x–100x Faster Queries:** Reads only the exact columns your query asks for and completely skips the rest.
 2. **Up to 80% Smaller Size:** Compresses identical data types sitting next to each other tightly, cutting cloud storage bills.
 3. **Preserves Data Types:** Unlike CSV (all plain text), Parquet remembers whether each column is a number, date, or string.
+
+</details>
+
+## Topic 16: Partitioning & Indexing (How Huge Tables Stay Fast)
+
+<details>
+<summary><b>1. What is Partitioning?</b></summary>
+
+**Partitioning** splits a massive table into separate physical folders based on a column you filter by often (usually `date` or `country`), like `/orders/date=2026-11-15/`.
+- **Analogy:** Sorting 5 years of paper receipts into separate folders labeled by date instead of dumping them into one giant box.
+- **Why it is fast (Partition Pruning):** When you query a specific date, the database completely skips all other date folders and reads **only that single folder**.
+- **Where it is used:** Data Lakes and Data Warehouses (**OLAP**).
+</details>
+
+<details>
+<summary><b>2. What is Indexing?</b></summary>
+
+**Indexing** creates a sorted lookup map pointing directly to where each row lives on disk.
+- **Analogy:** The alphabetical index at the back of a textbook that tells you *"Backpropagation — Page 412"* so you don't flip through every page from page 1.
+- **Why it is fast:** Lets the database jump straight to **1 exact row** (like `user_id = 84920`) in 1 millisecond instead of scanning millions of rows.
+- **Where it is used:** Live App Databases (**OLTP**).
+</details>
+
+<details>
+<summary><b>3. Partitioning vs. Indexing at a Glance</b></summary>
+
+| Feature | **Partitioning** | **Indexing** |
+| :--- | :--- | :--- |
+| **Best Analogy** | Separate folders by date | Index page at the back of a book |
+| **Where It Lives** | Data Lakes & Warehouses (OLAP) | Live App Databases (OLTP) |
+| **Best For** | Skipping millions of irrelevant rows (e.g., filtering by `date`) | Finding **1 exact row** instantly (e.g., `user_id = 84920`) |
 </details>
