@@ -491,3 +491,40 @@ A **Workflow Orchestrator** (like **Apache Airflow** or **Dagster**) acts as the
 | **When internet flickers** | Fails silently | Automatically retries `N` times |
 | **When Step 1 fails** | Step 2 still runs on bad/empty data | Halts downstream steps & sends an alert |
 </details>
+
+## Topic 23: Distributed Processing & Streaming (Apache Spark & Kafka)
+
+<details>
+<summary><b>1. What is the simple difference between Kafka and Spark?</b></summary>
+
+- **Apache Kafka** **catches and moves** live data safely (does **no** math or cleaning).
+- **Apache Spark** **cleans and processes** massive datasets across many computers at once.
+
+`[5,000 Shops] -> [Kafka: Catches live orders] -> [Spark: 50 PCs clean & sum] -> [Lakehouse]`
+</details>
+
+<details>
+<summary><b>2. What is Apache Kafka?</b></summary>
+
+**Apache Kafka** acts like an **airport luggage conveyor belt** (shock absorber) for live events.
+- **Problem it solves:** If 5,000 branches send 50,000 orders/sec straight to a database at once, the database crashes.
+- **How it works:** Apps drop live events onto labeled lanes (**Topics**). Kafka safely holds millions of messages/sec on disk so downstream tools (Spark, Data Lakes, Fraud Alerts) can read them at their own pace without crashing.
+</details>
+
+<details>
+<summary><b>3. What is Apache Spark?</b></summary>
+
+**Apache Spark** is a distributed compute engine that makes **many computers work together like one giant brain**.
+- **Problem it solves:** 1 computer runs out of RAM and crashes when cleaning Terabytes (100M+ rows) of data.
+- **How it works:** **1 Boss (Driver)** splits the data into chunks and hands them to **50 Workers (Executors)** to clean and calculate in parallel—finishing hours of work in minutes.
+</details>
+
+<details>
+<summary><b>4. Kafka vs. Spark Comparison</b></summary>
+
+| Feature | **Apache Kafka** | **Apache Spark** |
+| :--- | :--- | :--- |
+| **Main Job** | **Catch & transport** live events | **Clean & calculate** massive data |
+| **Analogy** | Airport conveyor belt | 50 workers splitting giant paperwork |
+| **Does heavy math?** | ❌ No | ✅ Yes |
+</details>
