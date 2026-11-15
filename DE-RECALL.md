@@ -407,3 +407,38 @@ Instead of interrupting the live database tables, **CDC** (using tools like **De
 2. **Zero Extra Load on the Live App:** Reading the log file never slows down live customer traffic.
 3. **Real-Time Updates:** Streams every `INSERT`, `UPDATE`, and `DELETE` into Kafka, Data Lakehouses, or Vector Databases within seconds.
 </details>
+
+
+## Topic 20: Slowly Changing Dimensions — SCD Type 1 & Type 2 (Tracking Profile Changes)
+
+<details>
+<summary><b>1. What is a Slowly Changing Dimension (SCD)?</b></summary>
+
+Customer and product profiles in **Dimension Tables** (`dim_customers`) change occasionally over time—such as a customer moving cities or changing their subscription tier. **SCD Type 1** and **SCD Type 2** are the two standard ways Data Engineers handle those updates.
+</details>
+
+<details>
+<summary><b>2. What is SCD Type 1 (Overwrite)?</b></summary>
+
+**SCD Type 1** simply erases the old value and writes the new value in the same row—keeping **no history**.
+
+| Customer ID | Name | City |
+| :--- | :--- | :--- |
+| C1 | Arun | **Coimbatore** *(Old city "Chennai" is erased)* |
+
+- **Best For:** Fixing typos and spelling mistakes (e.g., `"Arnn"` → `"Arun"`) where nobody cares about the old wrong value.
+</details>
+
+<details>
+<summary><b>3. What is SCD Type 2 (Add a New Row — Keep Full History)?</b></summary>
+
+**SCD Type 2** never overwrites old data. It closes the old row with an `End Date` (`Is Current = No`) and inserts a **brand-new row** for the updated profile (`Is Current = Yes`):
+
+| Row ID | Customer ID | Name | City | Start Date | End Date | Is Current? |
+| :--- | :--- | :--- | :--- | :--- | :--- | :--- |
+| 1 | C1 | Arun | **Chennai** | Jan 1 | May 31 | ❌ No |
+| 2 | C1 | Arun | **Coimbatore** | Jun 1 | *(Open)* | ✅ Yes |
+
+- **Best For:** Tracking real-world changes (city moves, plan upgrades) so past sales stay accurately linked to where the customer lived at that exact time.
+</details>
+
