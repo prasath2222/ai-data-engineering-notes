@@ -197,3 +197,18 @@ A specialized data pipeline that takes a company's private documents (PDFs, manu
    - Clean structured tables load into a **Data Warehouse (OLAP)** for fast analytics and ML without slowing down the live app.
    - Clean text documents are **Chunked**, converted into **Embeddings**, and stored in a **Vector Database** to power **RAG** AI chatbots.
 </details>
+
+## Topic 13: Data Modeling — Fact vs. Dimension Tables (Star Schema)
+
+<details>
+<summary><b>1. What is the difference between a Fact Table and a Dimension Table?</b></summary>
+
+- **Fact Table (The Events & Numbers):** Stores measurable events or actions that happen over time (things you count or sum), containing mostly IDs and numbers (`order_id`, `user_id`, `quantity`, `total_amount`). *Example:* `fact_orders`.
+- **Dimension Table (The Who, What, Where):** Stores descriptive background details about the people, products, or places involved in those events. *Examples:* `dim_users`, `dim_products`.
+</details>
+
+<details>
+<summary><b>2. Why do Data Engineers use Star Schema instead of one giant table?</b></summary>
+
+Splitting events (**Fact**) from descriptive profiles (**Dimension**) avoids repeating the same text thousands of times, saves storage, and makes updates clean—if a user changes their city, you update **1 row** in `dim_users` instead of thousands of rows in `fact_orders`.
+</details>
