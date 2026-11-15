@@ -163,3 +163,19 @@ A strict set of rules placed at the entrance of a pipeline that checks every inc
 **Idempotency** means you can run the exact same pipeline **once, twice, or 10 times** for the same day/batch and get the **exact same clean result** with zero duplicate rows.
 - **How it is achieved:** Instead of blindly inserting rows, pipelines use **UPSERT** (`UPDATE` if the ID already exists, `INSERT` if it is new) or delete-and-replace that specific date's partition before loading.
 </details>
+
+## Topic 11: How Data Engineering Powers AI & LLMs (RAG Pipelines)
+
+<details>
+<summary><b>1. What is a RAG (Retrieval-Augmented Generation) Pipeline?</b></summary>
+
+A specialized data pipeline that takes a company's private documents (PDFs, manuals, support chats), cleans and indexes them, and lets an AI model search and retrieve the exact relevant facts in milliseconds to answer user questions accurately.
+</details>
+
+<details>
+<summary><b>2. What are the 3 core steps in an AI Data Pipeline?</b></summary>
+
+1. **Extract & Clean Text (Parsing):** Pulling raw files from a Data Lake and stripping out messy headers, page numbers, and broken formatting so only clean text remains.
+2. **Chunking:** Slicing long documents into small, bite-sized paragraphs (300–500 words with slight overlap) so the AI only reads the exact relevant sections instead of processing a massive file every time.
+3. **Embeddings & Vector Database:** Converting each text chunk into a list of numbers (**Embedding**) that captures its *meaning*, and storing them in a **Vector Database** (like **pgvector**, **Qdrant**, or **Pinecone**) for instant semantic search.
+</details>
