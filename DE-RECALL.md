@@ -93,3 +93,23 @@ Moving each piece of data **the exact second it happens**, continuously 24/7, on
 
 Because **ELT keeps the original raw data untouched**. If an AI engineer or analyst needs a different field or wants to re-clean last month's data in a new way later, the original raw files are still safely stored and ready to reuse.
 </details>
+
+## Topic 7: Data Lake vs. Data Warehouse (Where Data Lives)
+
+<details>
+<summary><b>1. What is a Data Lake?</b></summary>
+
+A cheap, massive storage system that holds **raw, untouched files** in any format—CSVs, JSON logs, PDFs, images, and audio.
+- **Analogy:** A giant storage room where boxes are stacked straight off the truck before unpacking.
+- **Examples:** Amazon S3, Google Cloud Storage (GCS).
+- **Why AI teams use it:** Cheaply stores millions of raw PDFs, text files, and logs before processing them for AI models.
+</details>
+
+<details>
+<summary><b>2. What is a Data Warehouse?</b></summary>
+
+A fast analytical system that holds **only cleaned, structured data** neatly organized into SQL tables (rows and columns).
+- **Analogy:** Supermarket shelves where every item is unpacked, labeled, and arranged for fast lookup.
+- **Examples:** Google BigQuery, Snowflake.
+- **Why Analysts use it:** Dashboards and business reports run super fast because the data is already cleaned and structured.
+</details>
