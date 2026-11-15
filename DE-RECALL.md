@@ -212,19 +212,59 @@ A specialized data pipeline that takes a company's private documents (PDFs, manu
 
 Splitting events (**Fact**) from descriptive profiles (**Dimension**) avoids repeating the same text thousands of times, saves storage, and makes updates clean—if a user changes their city, you update **1 row** in `dim_users` instead of thousands of rows in `fact_orders`.
 </details>
-
-## Topic 14: Core SQL Patterns for Data Engineers (`JOIN`, `GROUP BY`, Window Functions)
+## Topic 14: Core SQL Patterns (`GROUP BY`, Window Functions, `JOIN`)
 
 <details>
-<summary><b>1. What does JOIN do?</b></summary>
+<summary><b>1. Base Example Table (Small Tea Shop Sales)</b></summary>
 
-**`JOIN`** stitches two tables together side-by-side using a matching ID column (e.g., looking up a customer's `name` in `dim_users` using their `user_id` from `fact_orders`).
-- **Rule of Thumb:** Data Engineers usually prefer **`LEFT JOIN`** so every row from the main Fact table is kept even if a matching profile is missing.
+Imagine starting with these **3 individual sales rows**:
+
+| Order | Customer ID | Item | Price |
+| :--- | :--- | :--- | :--- |
+| 1 | C1 | Tea | ₹20 |
+| 2 | C2 | Coffee | ₹30 |
+| 3 | C1 | Tea | ₹20 |
 </details>
 
 <details>
-<summary><b>2. What is the difference between GROUP BY and a Window Function?</b></summary>
+<summary><b>2. GROUP BY (Squashes Rows into a Short Summary)</b></summary>
 
-- **`GROUP BY` (Squashes Rows):** Collapses many individual rows into a short summary table (e.g., squashing 100 Tea and Coffee orders down into **2 summary rows** showing total sales per item).
-- **Window Function — `OVER (...)` (Keeps All Rows):** Performs calculations across rows (like **running totals**, **rankings**, or **numbering duplicate rows**) and adds the result as a **new column** without deleting or collapsing any existing rows.
+**`GROUP BY`** collapses many individual rows down into summary totals. The original individual rows disappear.
+
+- **Example (`GROUP BY Item`):** Squashes the 3 orders down into **2 summary rows**:
+
+| Item | Total Money |
+| :--- | :--- |
+| **Tea** | ₹40 |
+| **Coffee** | ₹30 |
+</details>
+
+<details>
+<summary><b>3. Window Function (Keeps All Rows, Adds a New Column)</b></summary>
+
+A **Window Function (`OVER (...)`)** calculates totals, rankings, or row numbers **without deleting or squashing any rows**—it simply adds a new calculated column on the right.
+
+- **Example (Running Total):** Keeps all 3 orders visible and tracks the cash box total after each sale:
+
+| Order | Item | Price | **Running Total (New Column)** |
+| :--- | :--- | :--- | :--- |
+| 1 | Tea | ₹20 | **₹20** |
+| 2 | Coffee | ₹30 | **₹50** *(20 + 30)* |
+| 3 | Tea | ₹20 | **₹70** *(50 + 20)* |
+
+- **Data Engineering Use:** Used with `ROW_NUMBER()` to number duplicate rows (`1, 2, 3...`) and keep only `#1`.
+</details>
+
+<details>
+<summary><b>4. JOIN (Glues Info from a Second Table)</b></summary>
+
+**`JOIN`** matches an ID column between two separate tables and attaches missing details side-by-side.
+
+- **Table A (Orders):** `Order 1 | C1 | Tea`
+- **Table B (Customer Names):** `C1 | Arun`
+- **Result after `JOIN` on Customer ID:**
+
+| Order | Customer ID | **Name (from Table B)** | Item |
+| :--- | :--- | :--- | :--- |
+| 1 | C1 | **Arun** | Tea |
 </details>
