@@ -78,3 +78,18 @@ Collecting data over time and moving it all together in **scheduled chunks** (e.
 Moving each piece of data **the exact second it happens**, continuously 24/7, one event at a time.
 - **Used for:** Urgent situations where waiting even 1 minute is too late — like blocking credit card fraud immediately or live delivery map tracking.
 </details>
+
+## Topic 6: ETL vs. ELT (Where Does the Cleaning Happen?)
+
+<details>
+<summary><b>1. What is the difference between ETL and ELT?</b></summary>
+
+- **ETL (Extract -> Transform -> Load):** Pull raw data, clean it **first**, and save only the clean result into your storage/warehouse.
+- **ELT (Extract -> Load -> Transform):** Pull raw data, save the untouched raw copy into your storage/warehouse **first**, and clean it inside there later.
+</details>
+
+<details>
+<summary><b>2. Why do modern AI and Data Engineering teams prefer ELT?</b></summary>
+
+Because **ELT keeps the original raw data untouched**. If an AI engineer or analyst needs a different field or wants to re-clean last month's data in a new way later, the original raw files are still safely stored and ready to reuse.
+</details>
