@@ -124,3 +124,87 @@ Even with a single Primary Key (`student_id`), keeping `hostel_warden` and `ward
   - **App Databases (OLTP — PostgreSQL, MySQL):** Keep tables in **`3NF`** so updates are clean and data never goes out of sync.
   - **Data Warehouses (OLAP — BigQuery, Snowflake, DuckDB):** Often **Denormalize** (merge tables back into Star Schemas) so analytical reports on millions of rows run fast without heavy joins.
     
+# Second Normal Form (2NF) — Simple Step-by-Step Guide
+
+## 1. The Core Idea (Why We Combine Two Keys)
+In a database, one main ID (like `order_id`) often connects to many items:
+* In Order `101`, a customer buys **2 items**: Tea (`P1`) and Vada (`P2`).
+* Because there are 2 items, `order_id = 101` must appear **2 times** in the `Order_Items` table.
+* **The Problem:** A Primary Key can never repeat. If `order_id` is the only Primary Key, the database blocks the second item.
+* **The Solution:** Combine **`order_id` + `product_id`** together as a **2-Part Primary Key**:
+  * Row 1: `101 + P1` (Unique)
+  * Row 2: `101 + P2` (Unique)
+  * Now `order_id` can repeat safely, and you can still use `order_id = 101` to look up every product inside that order.
+
+---
+
+## 2. The 2NF Rule
+Whenever a table uses a **2-Part Primary Key** (like `order_id + product_id`), follow one strict rule:
+
+> **Every other column in that table must need BOTH keys together—not just 1 key.**
+
+*(Note: If a table only has a **1-column Primary Key**, it already passes 2NF. You only check 2NF when 2 keys are combined.)*
+
+---
+
+## 3. Example: What Breaks 2NF?
+
+Look at this `Order_Items` table where **`order_id` + `product_id`** is the 2-Part Primary Key:
+
+| order_id (Key 1) | product_id (Key 2) | quantity | product_name | product_price |
+| :--- | :--- | :--- | :--- | :--- |
+| **101** | **P1** | 2 | Masala Tea | 20 |
+| **101** | **P2** | 1 | Medu Vada | 15 |
+| **102** | **P1** | 5 | Masala Tea | 20 |
+
+Check every normal column against **Key 1 (`order_id`)** and **Key 2 (`product_id`)**:
+
+1. **`quantity` (Pass — Needs BOTH keys):**
+   * Does `quantity` (`2`) need `order_id` (`101`)? **Yes** (to know which order).
+   * Does `quantity` (`2`) need `product_id` (`P1`)? **Yes** (to know which product).
+   * **Result:** Keep `quantity` in this table.
+
+2. **`product_name` and `product_price` (Fail — Needs ONLY 1 key):**
+   * Does `"Masala Tea"` or `20` care about `order_id` (`101` or `102`)? **No.** `P1` is always `"Masala Tea"` and costs `20` in every order.
+   * These two columns only belong to **`product_id` (Key 2)**.
+   * **Result:** This **breaks 2NF**.
+
+### Why is this bad?
+* `"Masala Tea"` and `20` repeat in every single order where someone buys `P1`.
+* If the price of Tea changes from `20` to `25`, you must find and edit **thousands of order rows** instead of just 1 row.
+
+---
+
+## 4. How to Fix 2NF (Split and Link)
+
+Move the columns that only need **Key 2 (`product_id`)** into their own separate `Products` table, and link the tables using `product_id`.
+
+### Table 1: `Orders` (1-Part Primary Key: `order_id`)
+Stores the main order details once.
+| order_id (PK) | customer_id | order_date |
+| :--- | :--- | :--- |
+| **101** | 1 | 2026-11-16 |
+| **102** | 2 | 2026-11-16 |
+
+### Table 2: `Order_Items` (2-Part Primary Key: `order_id + product_id`)
+Stores only columns that need **both** `order_id` and `product_id`.
+| order_id (PK, FK) | product_id (PK, FK) | quantity |
+| :--- | :--- | :--- |
+| **101** | **P1** | 2 |
+| **101** | **P2** | 1 |
+| **102** | **P1** | 5 |
+
+### Table 3: `Products` (1-Part Primary Key: `product_id`)
+Stores product details once. If the price changes, you only edit **1 row** here.
+| product_id (PK) | product_name | product_price |
+| :--- | :--- | :--- |
+| **P1** | Masala Tea | 20 |
+| **P2** | Medu Vada | 15 |
+
+---
+
+## 5. Quick 3-Step Check for 2NF
+1. **Check the Primary Key:** Does it have **2 columns combined**? (If no, 2NF is already done).
+2. **Test every other column:** Ask *"Does this column need BOTH IDs, or only ONE ID?"*
+3. **Move single-ID columns:** If a column only needs **1 ID**, move it to its own table with that single ID as its Primary Key.
+   
