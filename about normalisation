@@ -4,7 +4,7 @@ Before learning **1NF**, **2NF** and **3NF**, we need to understand **WHY** norm
 
 I'll explain using a real-world college database.
 
----
+--- 
 
 ## 1. What is Database Normalization?
 
