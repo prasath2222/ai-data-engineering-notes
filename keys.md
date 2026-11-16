@@ -565,7 +565,144 @@ Course_ID  -> Course_Name
 These are **partial dependencies**.
 
 That is the problem we will learn to remove using **Second Normal Form (2NF)**.
+# Key Attributes and Non-Key Attributes in DBMS
 
+## 1. What is an Attribute?
+
+An attribute is simply a column in a database table.
+
+Example:
+
+| Student_ID | Course_ID | Student_Name | Course_Name | Marks |
+|---|---|---|---|---|
+| 101 | C01 | Arun | Java | 85 |
+| 101 | C02 | Arun | Python | 90 |
+| 102 | C01 | Ravi | Java | 75 |
+
+Here, the attributes are:
+- Student_ID
+- Course_ID
+- Student_Name
+- Course_Name
+- Marks
+
+## 2. What is a Key Attribute?
+
+A **key attribute** is an attribute that is part of at least one candidate key.
+
+In simple words:
+
+If a column is used as part of a candidate key that uniquely identifies a row, it is a key attribute.
+
+In our example, assume:
+
+- Student_ID + Course_ID together uniquely identify each enrollment.
+- Neither Student_ID nor Course_ID alone uniquely identifies an enrollment.
+
+Therefore, the candidate key is:
+
+`(Student_ID, Course_ID)`
+
+Both columns are key attributes:
+
+- Student_ID
+- Course_ID
+
+## 3. What is a Non-Key Attribute?
+
+A **non-key attribute** is an attribute that does not belong to any candidate key.
+
+In our example:
+
+| Attribute | Classification |
+|---|---|
+| Student_ID | Key Attribute |
+| Course_ID | Key Attribute |
+| Student_Name | Non-Key Attribute |
+| Course_Name | Non-Key Attribute |
+| Marks | Non-Key Attribute |
+
+Why?
+
+Because Student_Name, Course_Name, and Marks are not part of any candidate key in this example.
+
+## 4. Important: Non-Key Does NOT Mean Unimportant
+
+The word "non-key" does not mean that the column is useless or unimportant.
+
+For example:
+
+- Marks is important because it stores a student's result.
+- Student_Name is important because it tells us the student's name.
+- Course_Name is important because it tells us the course name.
+
+They are called non-key attributes only because they are not part of a candidate key.
+
+## 5. Prime Attribute vs Non-Prime Attribute
+
+In DBMS, the more technically precise terms are:
+
+### Prime Attribute
+An attribute that belongs to at least one candidate key.
+
+### Non-Prime Attribute
+An attribute that does not belong to any candidate key.
+
+For our example:
+
+| Attribute | Classification |
+|---|---|
+| Student_ID | Prime Attribute |
+| Course_ID | Prime Attribute |
+| Student_Name | Non-Prime Attribute |
+| Course_Name | Non-Prime Attribute |
+| Marks | Non-Prime Attribute |
+
+**Remember:**
+
+- Prime Attribute = Part of at least one candidate key.
+- Non-Prime Attribute = Not part of any candidate key.
+
+## 6. Why Are These Concepts Important?
+
+These concepts are important when learning database normalization.
+
+For example, in 2NF:
+
+A table must:
+1. Be in 1NF.
+2. Have no partial dependency of a non-prime attribute on any candidate key.
+
+Consider these functional dependencies:
+
+`Student_ID → Student_Name`
+
+`Course_ID → Course_Name`
+
+`(Student_ID, Course_ID) → Marks`
+
+Here:
+
+- Student_Name depends only on Student_ID.
+- Course_Name depends only on Course_ID.
+- Marks depends on the complete combination of Student_ID and Course_ID.
+
+This helps us identify partial dependencies and understand why decomposition is needed.
+
+---
+
+## Quick Revision
+
+| Term | Meaning |
+|---|---|
+| Key Attribute | Attribute that belongs to at least one candidate key |
+| Non-Key Attribute | Informal term for an attribute that is not part of any candidate key |
+| Prime Attribute | Attribute that belongs to at least one candidate key |
+| Non-Prime Attribute | Attribute that does not belong to any candidate key |
+
+**Most important point:**
+
+A column can be important to the database without being a key attribute.
 ---
 
 *End of DBMS Keys Notes.*
