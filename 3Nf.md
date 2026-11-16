@@ -1268,4 +1268,124 @@ Try answering these questions without looking at the notes.
 **Question 6:** If I give you Dept_ID = D01, can you find Dept_Name without knowing Student_ID?
 
 If you can explain all six answers in your own words, you understand the central idea behind 3NF.
+
+# 3NF – Simple Notes (Transitive Dependency)
+
+## 1. Main Idea
+
+3NF removes **transitive dependency**.
+
+In simple words:
+
+A non-prime attribute should not depend on another non-prime attribute when that dependency violates 3NF.
+
+## 2. Example – Original Student Table
+
+| Student_ID (PK) | Student_Name | Dept_ID | Dept_Name |
+|---|---|---|---|
+| 101 | Arun | D01 | Computer Science |
+| 102 | Ravi | D02 | Mechanical |
+| 103 | Kumar | D01 | Computer Science |
+
+## 3. Functional Dependencies
+
+```text
+Student_ID → Student_Name
+
+Student_ID → Dept_ID
+
+Dept_ID → Dept_Name
+```
+
+## 4. Understand the Problem
+
+Suppose we want Arun's department name.
+
+```text
+Student_ID = 101
+       ↓
+Dept_ID = D01
+       ↓
+Dept_Name = Computer Science
+```
+
+Notice:
+
+We use `Dept_ID` to find `Dept_Name`.
+
+We don't need `Student_ID` to determine the department name once we know `Dept_ID`.
+
+Therefore:
+
+```text
+Student_ID → Dept_ID → Dept_Name
+```
+
+This is called **transitive dependency**.
+
+## 5. Why Is It a Problem?
+
+- `Student_ID` is the primary key.
+- `Dept_ID` is a non-prime attribute in the original table.
+- `Dept_Name` is a non-prime attribute.
+- `Dept_ID` determines `Dept_Name`.
+
+This creates unnecessary repetition of department information in the Student table.
+
+## 6. Solution – Convert into 3NF
+
+Split the original table into two tables.
+
+### Student Table
+
+| Student_ID (PK) | Student_Name | Dept_ID (FK) |
+|---|---|---|
+| 101 | Arun | D01 |
+| 102 | Ravi | D02 |
+| 103 | Kumar | D01 |
+
+### Department Table
+
+| Dept_ID (PK) | Dept_Name |
+|---|---|
+| D01 | Computer Science |
+| D02 | Mechanical |
+
+## 7. Why Do We Keep Dept_ID in Both Tables?
+
+- In the Student table, `Dept_ID` is a **foreign key**.
+- In the Department table, `Dept_ID` is a **primary key**.
+
+We keep Dept_ID in the Student table to identify which department each student belongs to.
+
+We keep Dept_ID in the Department table to identify the department name.
+
+## 8. Final Understanding
+
+**Before 3NF:**
+
+```text
+Student_ID → Dept_ID → Dept_Name
+```
+
+**After 3NF:**
+
+```text
+STUDENT TABLE:
+
+Student_ID → Student_Name
+Student_ID → Dept_ID
+```
+
+```text
+DEPARTMENT TABLE:
+
+Dept_ID → Dept_Name
+```
+
+**Remember:**
+
+3NF separates information when a non-prime attribute depends on another non-prime attribute in a way that violates 3NF.
+
+The goal is to store department details in the Department table instead of repeating them for every student.
 **End of 3NF Notes.**
