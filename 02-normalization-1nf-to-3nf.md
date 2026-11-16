@@ -208,3 +208,134 @@ Stores product details once. If the price changes, you only edit **1 row** here.
 2. **Test every other column:** Ask *"Does this column need BOTH IDs, or only ONE ID?"*
 3. **Move single-ID columns:** If a column only needs **1 ID**, move it to its own table with that single ID as its Primary Key.
    
+# Third Normal Form (3NF) & BCNF — Simple Step-by-Step Guide
+
+## 1. Third Normal Form (3NF) — "No Middleman Column"
+
+### The Core Rule
+1. The table must already pass **1NF** and **2NF**.
+2. Every normal column in a table must describe **only the Primary Key**.
+3. One normal column **cannot** describe another normal column (no middleman chain: `Key -> Column A -> Column B`).
+
+### Example: What Breaks 3NF? (The Bad Table)
+Look at this `Employees` table where **`emp_id`** is the Primary Key:
+
+| emp_id (PK) | emp_name | dept_id | dept_city |
+| :--- | :--- | :--- | :--- |
+| E1 | Arun | D10 | Chennai |
+| E2 | Priya | D10 | Chennai |
+| E3 | Karthik | D20 | Madurai |
+
+Check every column against **`emp_id` (Primary Key)**:
+* **`emp_name` (`Arun`):** Describes Employee `E1`. (**Good**)
+* **`dept_id` (`D10`):** Shows which department Employee `E1` works in. (**Good — this is the link**)
+* **`dept_city` (`Chennai`):** Describes **Department `D10`**, NOT Employee `E1`. (**Breaks 3NF**)
+  * Here, `dept_id` is acting like a middleman: `emp_id` -> `dept_id` -> `dept_city`.
+
+### Why is This Bad? (The 3 Problems)
+1. **Repeat Problem:** `"Chennai"` repeats for every employee in `D10`.
+2. **Edit Problem:** If Department `D10` moves from Chennai to Coimbatore, you must edit 500 employee rows instead of 1 row.
+3. **Delete Problem:** Karthik (`E3`) is the only worker in `D20`. If Karthik quits and you delete his row, you also lose the fact that `D20` is in `Madurai`.
+
+### How to Fix 3NF (Split and Link)
+Keep **only the link ID (`dept_id`)** in `Employees`, and move **`dept_id` + `dept_city`** into its own `Departments` table:
+
+**Table 1: `Employees` (Primary Key = `emp_id`)**
+| emp_id (PK) | emp_name | dept_id (Link / FK) |
+| :--- | :--- | :--- |
+| E1 | Arun | D10 |
+| E2 | Priya | D10 |
+| E3 | Karthik | D20 |
+
+**Table 2: `Departments` (Primary Key = `dept_id`)**
+| dept_id (PK) | dept_city |
+| :--- | :--- |
+| D10 | Chennai |
+| D20 | Madurai |
+
+---
+
+## 2. Important Design Rule: 2 Tables vs. 3 Tables
+Both designs below follow **2NF and 3NF**. Choose based on your business rule:
+
+### Case A: Use 2 Tables (1 Employee -> 1 Department)
+If each employee works in **only 1 department**, put `dept_id` inside `Employees` as a Foreign Key link:
+* **`Employees`:** `emp_id (PK)`, `emp_name`, `dept_id (FK)`
+* **`Departments`:** `dept_id (PK)`, `dept_city`
+
+### Case B: Use 3 Tables (1 Employee -> Many Departments)
+If one employee can work in **many departments** (and one department has many employees), create a **3rd link table** using a 2-part Primary Key:
+
+**Table 1: `Employees`**
+| emp_id (PK) | emp_name |
+| :--- | :--- |
+| E1 | Arun |
+| E2 | Priya |
+
+**Table 2: `Departments`**
+| dept_id (PK) | dept_city |
+| :--- | :--- |
+| D10 | Chennai |
+| D20 | Madurai |
+
+**Table 3: `Employee_Departments` (Link Table — 2-Part Primary Key)**
+| emp_id (PK, FK) | dept_id (PK, FK) |
+| :--- | :--- |
+| E1 | D10 |
+| E1 | D20 |
+| E2 | D10 |
+
+---
+
+## 3. BCNF (Boyce-Codd Normal Form) — "Strict 3NF"
+
+BCNF is a slightly stricter version of 3NF. Most tables that pass 3NF already pass BCNF.
+
+### The Core Rule
+> **If Column A decides Column B, then Column A MUST be a Primary Key in that table.**
+> A normal column cannot decide any other column—not even part of the Primary Key.
+
+### Example: What Breaks BCNF?
+Suppose a college has two rules:
+1. One student can take many subjects.
+2. **Each teacher teaches only 1 subject** (Ravi only teaches SQL; Meena only teaches Python).
+
+Look at this table where **`student_id + subject`** is the 2-Part Primary Key:
+
+| student_id (Key 1) | subject (Key 2) | teacher (Normal Column) |
+| :--- | :--- | :--- |
+| S1 | SQL | Ravi |
+| S2 | SQL | Ravi |
+| S1 | Python | Meena |
+
+* **What is wrong?**
+  * Because each teacher teaches only 1 subject, **`teacher` decides `subject`** (`Ravi` -> `SQL`).
+  * `teacher` is a **normal column**, NOT a Primary Key, yet it decides `subject` (Key 2). This **breaks BCNF**.
+  * `"Ravi"` + `"SQL"` repeats for every student. If S1 and S2 drop the class, you lose the record that Ravi teaches SQL.
+
+### How to Fix BCNF
+Split the table so **`teacher`** becomes the Primary Key of its own table:
+
+**Table 1: `Student_Teachers` (2-Part Primary Key: `student_id + teacher`)**
+| student_id (PK) | teacher (PK, FK) |
+| :--- | :--- |
+| S1 | Ravi |
+| S2 | Ravi |
+| S1 | Meena |
+
+**Table 2: `Teachers` (Primary Key: `teacher`)**
+| teacher (PK) | subject |
+| :--- | :--- |
+| Ravi | SQL |
+| Meena | Python |
+
+---
+
+## 4. Complete Normalization Cheat Sheet (1NF to BCNF)
+
+| Normal Form | What the Bad Table Looks Like | Simple Rule to Fix It |
+| :--- | :--- | :--- |
+| **1NF** | A single box holds a list of values (`"Tea, Vada"`). | Put **only 1 value** in each box (create separate rows). |
+| **2NF** | A **2-part Primary Key** (`order_id + product_id`), and a column (`product_name`) only needs **1 key**. | Move that column to its own table with that **1 key** as Primary Key. |
+| **3NF** | A **1-part Primary Key** (`emp_id`), and a normal column (`dept_city`) describes **another normal column** (`dept_id`). | Keep `dept_id` as the link, and move `dept_id` + `dept_city` to a new table. |
+| **BCNF** | A **normal column** (`teacher`) decides **part of the Primary Key** (`subject`). | Make `teacher` the Primary Key of its own table. |
