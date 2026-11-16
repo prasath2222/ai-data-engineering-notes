@@ -687,5 +687,487 @@ Try answering these questions without looking at the notes.
 9. Why do we split the original table?
 10. Why is Instructor a primary key in the Instructor_Course table?
 11. Why is Instructor a foreign key in the Student_Instructor table?
+# BCNF (Boyce-Codd Normal Form)
 
+## 1. What is BCNF?
+
+BCNF is a stricter version of 3NF.
+
+**Main purpose:** Make sure that the left side of every non-trivial functional dependency is a Super Key.
+
+### Remember this rule:
+
+For every functional dependency:
+
+```text
+X → Y
+```
+
+**X MUST be a Super Key.**
+
+In simple words:
+
+Whenever one attribute or a combination of attributes determines another attribute, the left side must be capable of uniquely identifying the entire row.
+
+---
+
+## 2. Understand BCNF Using an Example
+
+Suppose we have this table:
+
+### Student_Course Table
+
+| Student | Course | Instructor |
+|---|---|---|
+| Arun | Java | Ravi |
+| Kumar | Java | Ravi |
+| Bala | Python | Bala |
+| Arun | Python | Bala |
+
+Assume these rules:
+
+1. A student can take multiple courses.
+2. A course can have multiple students.
+3. Each instructor teaches only ONE course.
+4. A course can have multiple instructors.
+5. A student taking a particular course is assigned an instructor.
+
+---
+
+## 3. Understand Functional Dependencies
+
+We have TWO functional dependencies.
+
+### Dependency 1:
+
+```text
+(Student, Course) → Instructor
+```
+
+**Meaning:**
+
+If we know the Student and Course, we can find which instructor is assigned to that student for that course.
+
+Example:
+
+```text
+Arun + Java → Ravi
+Arun + Python → Bala
+```
+
+Why do we use Student + Course?
+
+Because we need both pieces of information to identify the instructor assigned to that particular student-course combination.
+
+### Dependency 2:
+
+```text
+Instructor → Course
+```
+
+**Meaning:**
+
+If we know the Instructor, we can find which course that instructor teaches.
+
+Example:
+
+```text
+Ravi → Java
+Bala → Python
+```
+
+Why?
+
+Because each instructor teaches only ONE course according to our business rule.
+
+**Important:** We are checking two different relationships:
+
+- Student + Course tells us the instructor assigned to that combination.
+- Instructor tells us which course that instructor teaches.
+
+---
+
+## 4. Find Candidate Keys
+
+Remember:
+
+A Candidate Key is a minimal Super Key that uniquely identifies every row.
+
+Our candidate keys are:
+
+```text
+1. Student + Course
+
+2. Student + Instructor
+```
+
+### Why Student + Course?
+
+Because:
+
+```text
+(Student, Course) → Instructor
+```
+
+Student + Course determines all three attributes.
+
+Neither Student nor Course alone can identify every row.
+
+Therefore, Student + Course is a Candidate Key.
+
+### Why Student + Instructor?
+
+Because:
+
+```text
+Instructor → Course
+```
+
+If we know Student + Instructor, we can also find Course.
+
+Therefore, Student + Instructor determines all three attributes.
+
+Neither Student nor Instructor alone is sufficient.
+
+Therefore, Student + Instructor is another Candidate Key.
+
+---
+
+## 5. Prime and Non-Prime Attributes
+
+Remember:
+
+- Prime Attribute = An attribute that belongs to at least one Candidate Key.
+- Non-Prime Attribute = An attribute that does not belong to any Candidate Key.
+
+Our candidate keys:
+
+```text
+Student + Course
+
+Student + Instructor
+```
+
+Therefore:
+
+| Attribute | Type |
+|---|---|
+| Student | Prime |
+| Course | Prime |
+| Instructor | Prime |
+
+All three attributes are Prime Attributes.
+
+---
+
+## 6. How to Check BCNF?
+
+This is the MOST IMPORTANT part.
+
+Remember the BCNF rule:
+
+**The left side of EVERY non-trivial functional dependency MUST be a Super Key.**
+
+We check each functional dependency separately.
+
+### A. Check the first dependency
+
+```text
+(Student, Course) → Instructor
+```
+
+Question:
+
+Is Student + Course a Super Key?
+
+YES.
+
+Because Student + Course uniquely identifies the entire row.
+
+Therefore:
+
+**This dependency satisfies BCNF.**
+
+### B. Check the second dependency
+
+```text
+Instructor → Course
+```
+
+Question:
+
+Is Instructor alone a Super Key?
+
+NO.
+
+Why?
+
+Because one instructor can teach multiple students.
+
+Example:
+
+| Student | Course | Instructor |
+|---|---|---|
+| Arun | Java | Ravi |
+| Kumar | Java | Ravi |
+
+Here, Ravi appears in multiple rows.
+
+Therefore, Instructor alone cannot uniquely identify the entire row.
+
+So:
+
+```text
+Instructor → Course
+```
+
+**Violates BCNF.**
+
+### Final result:
+
+| Functional Dependency | Left side is a Super Key? | BCNF |
+|---|---|---|
+| (Student, Course) → Instructor | Yes | Pass |
+| Instructor → Course | No | Fail |
+
+Because one dependency violates BCNF, the entire table is NOT in BCNF.
+
+---
+
+## 7. Why Does This Table Pass 3NF but Fail BCNF?
+
+Remember the 3NF rule:
+
+For every non-trivial functional dependency, at least ONE condition must be true:
+
+1. Left side is a Super Key.
+2. Right side is a Prime Attribute.
+
+Now check:
+
+```text
+Instructor → Course
+```
+
+- Is Instructor a Super Key? NO.
+- Is Course a Prime Attribute? YES.
+
+Therefore, it satisfies 3NF.
+
+But BCNF has a stricter rule.
+
+BCNF says:
+
+**The left side MUST be a Super Key.**
+
+It does not allow the Prime Attribute exception.
+
+Therefore, this dependency violates BCNF.
+
+### Difference:
+
+| 3NF | BCNF |
+|---|---|
+| Left side must be a Super Key OR right side must be a Prime Attribute. | Left side MUST be a Super Key. |
+| Allows the Prime Attribute exception. | Does not allow the exception. |
+| Less strict. | More strict. |
+
+---
+
+## 8. How to Convert the Table into BCNF?
+
+We found the problem:
+
+```text
+Instructor → Course
+```
+
+Instructor determines Course, but Instructor is NOT a Super Key in the original table.
+
+So we separate the instructor-course information into another table.
+
+### Table 1: Instructor_Course
+
+| Instructor (PK) | Course |
+|---|---|
+| Ravi | Java |
+| Bala | Python |
+
+Why?
+
+Because each instructor teaches only one course.
+
+Now Instructor uniquely identifies every row in this table.
+
+Therefore, Instructor is a Super Key here.
+
+### Table 2: Student_Instructor
+
+| Student (PK part) | Instructor (PK part, FK) |
+|---|---|
+| Arun | Ravi |
+| Kumar | Ravi |
+| Bala | Bala |
+| Arun | Bala |
+
+Composite Primary Key:
+
+```text
+Student + Instructor
+```
+
+Instructor is also a Foreign Key referencing Instructor_Course.
+
+### Final structure:
+
+```text
+INSTRUCTOR_COURSE
+
+Instructor (PK)
+Course
+```
+
+```text
+STUDENT_INSTRUCTOR
+
+Student
+Instructor (FK)
+
+Composite PK: Student + Instructor
+```
+
+---
+
+## 9. Why Do We Split the Table?
+
+Look at the original table:
+
+| Student | Course | Instructor |
+|---|---|---|
+| Arun | Java | Ravi |
+| Kumar | Java | Ravi |
+| Bala | Python | Bala |
+| Arun | Python | Bala |
+
+Notice:
+
+Ravi teaches Java to multiple students.
+
+If Ravi teaches Java to 100 students, the same instructor-course information gets repeated in 100 rows.
+
+This creates unnecessary repetition.
+
+After splitting:
+
+### Instructor_Course
+
+| Instructor | Course |
+|---|---|
+| Ravi | Java |
+| Bala | Python |
+
+We store the instructor-course relationship only once.
+
+### Student_Instructor
+
+| Student | Instructor |
+|---|---|
+| Arun | Ravi |
+| Kumar | Ravi |
+| Bala | Bala |
+| Arun | Bala |
+
+We store only which instructor is assigned to which student.
+
+---
+
+## 10. Important Things to Remember
+
+1. BCNF is stricter than 3NF.
+2. Every BCNF table satisfies 3NF.
+3. A table can satisfy 3NF but violate BCNF.
+4. BCNF checks EVERY non-trivial functional dependency.
+5. The left side MUST be a Super Key.
+6. A Super Key uniquely identifies the entire row.
+7. A Candidate Key is a minimal Super Key.
+8. A Prime Attribute belongs to at least one Candidate Key.
+9. BCNF does not allow the Prime Attribute exception.
+10. If a dependency violates BCNF, we decompose (split) the table.
+11. Decomposition separates information to avoid unnecessary repetition.
+
+---
+
+## 11. Final Revision
+
+### Original table
+
+```text
+Student | Course | Instructor
+```
+
+### Functional Dependencies
+
+```text
+(Student, Course) → Instructor
+
+Instructor → Course
+```
+
+### Candidate Keys
+
+```text
+1. Student + Course
+
+2. Student + Instructor
+```
+
+### Prime Attributes
+
+```text
+Student
+Course
+Instructor
+```
+
+### BCNF Violation
+
+```text
+Instructor → Course
+```
+
+Reason:
+
+```text
+Instructor is NOT a Super Key
+```
+
+### Why it passes 3NF
+
+```text
+Course is a Prime Attribute.
+```
+
+### Solution
+
+Split into:
+
+```text
+INSTRUCTOR_COURSE
+
+Instructor (PK)
+Course
+```
+
+```text
+STUDENT_INSTRUCTOR
+
+Student
+Instructor (FK)
+
+Composite PK: Student + Instructor
+```
+
+### One-line definition to remember:
+
+**BCNF = Every non-trivial functional dependency must have a Super Key on its left side.**
 **If you can explain why `Instructor → Course` satisfies 3NF but violates BCNF, you have understood the central idea of BCNF.**
