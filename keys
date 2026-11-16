@@ -1,10 +1,29 @@
 DBMS – Complete Notes on Keys
 
-«Beginner-friendly notes | Conceptual understanding | Examples | Exam revision»
+«Beginner-friendly notes | Conceptual explanations | Examples | SQL | Exam revision»
 
-1. First, Understand a Database Table
+---
 
-Before learning keys, understand two basic terms.
+Table of Contents
+
+1. "Understanding Rows and Columns" (#1-understanding-rows-and-columns)
+2. "Primary Key" (#2-primary-key-pk)
+3. "Candidate Key" (#3-candidate-key)
+4. "Alternate Key" (#4-alternate-key)
+5. "Super Key" (#5-super-key)
+6. "Foreign Key" (#6-foreign-key-fk)
+7. "Composite Key" (#7-composite-key)
+8. "Unique Key" (#8-unique-key)
+9. "Relationship Between Keys" (#9-relationship-between-keys)
+10. "SQL Examples" (#10-sql-examples)
+11. "Common Mistakes" (#11-common-mistakes)
+12. "Practice Questions" (#12-practice-questions)
+
+---
+
+1. Understanding Rows and Columns
+
+Before learning keys, understand two basic concepts.
 
 Consider this Student table:
 
@@ -18,7 +37,7 @@ Student_ID| Email| Name| Age
 
 Our main objective is to identify each row uniquely.
 
-For example, if I want to find Arun's complete information, I should be able to identify his row without confusion.
+For example, if we want to find Arun's complete information, we should be able to identify his row without confusion.
 
 This is where database keys come into the picture.
 
@@ -37,7 +56,7 @@ Student_ID (PK)| Name| Age
 102| Ravi| 21
 103| Kumar| 22
 
-Here, Student_ID is the Primary Key.
+Here, "Student_ID" is the Primary Key.
 
 Why?
 
@@ -58,7 +77,7 @@ Important: One Primary Key does not mean one column. It can contain two or more 
 
 Example:
 
-"PRIMARY KEY (Student_ID, Course_ID)"
+PRIMARY KEY (Student_ID, Course_ID)
 
 This is still ONE Primary Key, even though it contains two columns.
 
@@ -83,15 +102,10 @@ Student_ID| Email| Name
 
 Assume Student_ID and Email are both unique and non-NULL.
 
-Now, think:
+Now think:
 
-Can Student_ID identify Arun?
-
-YES.
-
-Can Email identify Arun?
-
-YES.
+- Can Student_ID identify Arun? YES.
+- Can Email identify Arun? YES.
 
 Both independently identify the same student's row.
 
@@ -167,7 +181,7 @@ A Super Key is any set of one or more columns that can uniquely identify a row.
 
 Now you might ask:
 
-"If Primary Key and Candidate Key already identify rows uniquely, why do we need Super Key?"
+«If Primary Key and Candidate Key already identify rows uniquely, why do we need Super Key?»
 
 Excellent question!
 
@@ -279,10 +293,7 @@ Because Student_ID in the Marks table refers to Student_ID in the Student table.
 
 For example:
 
-Marks table:
-
-Student_ID| Marks
-101| 90
+Marks table says Student_ID = 101.
 
 We look at the Student table and find Student_ID 101.
 
@@ -293,7 +304,7 @@ Therefore, Arun scored 90 marks.
 Foreign Key Rules
 
 1. A Foreign Key can contain duplicate values.
-2. It can sometimes contain NULL, if allowed by the database constraints.
+2. It can sometimes contain NULL, if allowed by database constraints.
 3. It prevents references to non-existent parent records when referential integrity is enforced.
 4. It can reference a Primary Key or another eligible unique key.
 
@@ -342,15 +353,14 @@ YES.
 
 For example:
 
-"101 + C01 = Arun's Java enrolment"
-
-"101 + C02 = Arun's Python enrolment"
+- 101 + C01 = Arun's Java enrolment.
+- 101 + C02 = Arun's Python enrolment.
 
 The combination uniquely identifies each enrolment.
 
 Therefore:
 
-"PRIMARY KEY (Student_ID, Course_ID)"
+PRIMARY KEY (Student_ID, Course_ID)
 
 This is a Composite Primary Key.
 
@@ -373,6 +383,8 @@ Composite Key vs Single-Column Key
 Single-Column Key| Composite Key
 Uses one column| Uses two or more columns
 Example: Student_ID| Example: Student_ID + Course_ID
+
+Important: A composite key can also be a candidate key, super key, or primary key depending on its role.
 
 ---
 
@@ -414,20 +426,7 @@ Different database systems handle NULL values in UNIQUE constraints differently.
 
 ---
 
-9. Complete Comparison of All 7 Commonly Taught Keys
-
-Key| Main Purpose
-Super Key| Any set of columns that uniquely identifies a row
-Candidate Key| Minimal Super Key
-Primary Key| Selected Candidate Key
-Alternate Key| Candidate Key not selected as Primary Key
-Foreign Key| References a key in another table
-Composite Key| Key made of multiple columns
-Unique Key| Enforces uniqueness
-
----
-
-10. Most Important Relationships Between Keys
+9. Relationship Between Keys
 
 Understand these relationships carefully.
 
@@ -483,15 +482,17 @@ A Composite Key can be a Primary Key.
 
 Example:
 
-"PRIMARY KEY (Student_ID, Course_ID)"
+PRIMARY KEY (Student_ID, Course_ID)
 
 It is ONE Primary Key with TWO columns.
 
 ---
 
-11. Important SQL Example
+10. SQL Examples
 
 Let's see how these keys are used in actual SQL.
+
+Student Table
 
 CREATE TABLE Student (
     Student_ID INT PRIMARY KEY,
@@ -505,7 +506,7 @@ Here:
 - Email = UNIQUE constraint.
 - If Email is non-NULL and unique, it can also be a Candidate Key.
 
-Now create another table:
+Marks Table
 
 CREATE TABLE Marks (
     Mark_ID INT PRIMARY KEY,
@@ -521,7 +522,7 @@ Here:
 - Mark_ID = Primary Key.
 - Student_ID = Foreign Key.
 
-Now let's create a Composite Primary Key:
+Composite Primary Key
 
 CREATE TABLE Student_Course (
     Student_ID INT,
@@ -536,7 +537,7 @@ Here:
 
 ---
 
-12. Common Mistakes to Avoid
+11. Common Mistakes
 
 Wrong Understanding| Correct Understanding
 Primary Key and Candidate Key identify different things| Both identify rows uniquely
@@ -549,7 +550,7 @@ Every table must have exactly one Primary Key column| A Primary Key can consist 
 
 ---
 
-13. Practice Questions
+12. Practice Questions
 
 Try answering these before checking your understanding.
 
@@ -591,17 +592,20 @@ Can a table have multiple UNIQUE constraints?
 
 ---
 
-14. Final Revision – Remember These Sentences
+13. Final Revision
 
-1. Primary Key: The selected key that uniquely identifies each row.
-2. Candidate Key: A minimal possible key that can uniquely identify each row.
-3. Alternate Key: A Candidate Key that was not selected as the Primary Key.
-4. Super Key: Any set of columns that can uniquely identify a row, even if it contains unnecessary columns.
-5. Foreign Key: A key that references a key in another table.
-6. Composite Key: A key made using two or more columns.
-7. Unique Key: A constraint that prevents duplicate values.
+Key| Definition
+Primary Key| Selected key that uniquely identifies each row
+Candidate Key| Minimal possible key that uniquely identifies each row
+Alternate Key| Candidate Key not selected as Primary Key
+Super Key| Any set of columns that uniquely identifies a row
+Foreign Key| References a key in another table
+Composite Key| Key made using two or more columns
+Unique Key| Constraint that prevents duplicate values
 
-Connection to Your Next Topic: 2NF
+---
+
+14. Connection to 2NF
 
 Now that you understand keys, remember these two concepts especially:
 
@@ -614,12 +618,21 @@ Because 2NF is concerned with Partial Dependency, which can occur when a candida
 
 Example:
 
-"PRIMARY KEY (Student_ID, Course_ID)"
+PRIMARY KEY (Student_ID, Course_ID)
 
-If Student_Name depends only on Student_ID rather than the whole key, we have a partial dependency.
+Suppose:
+
+Student_ID -> Student_Name
+Course_ID  -> Course_Name
+
+Student_Name depends only on Student_ID, not on the entire composite key.
+
+Course_Name depends only on Course_ID, not on the entire composite key.
+
+These are partial dependencies.
 
 That is the problem we will learn to remove using Second Normal Form (2NF).
 
 ---
 
-End of DBMS Keys Notes
+End of DBMS Keys Notes.
