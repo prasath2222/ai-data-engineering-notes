@@ -223,6 +223,9 @@ That is why it is a Super Key.
 ### Most Important Relationship
 **Every Candidate Key is a Super Key, but every Super Key is NOT a Candidate Key.**
 
+Composite: Student_ID + Course_ID uses two columns.
+Super key: Student_ID + Course_ID uniquely identifies a row.
+
 **Example:**
 * `Student_ID` = Candidate Key and Super Key.
 * `Student_ID + Name` = Super Key, but NOT Candidate Key.
