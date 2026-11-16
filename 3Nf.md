@@ -711,5 +711,561 @@ Dept_Name
 | Primary Key | Student_ID in Student; Dept_ID in Department |
 | Foreign Key | Dept_ID in Student |
 | JOIN | Reconnecting separated tables when we need combined information |
+# Third Normal Form (3NF) – Understanding Transitive Dependency
 
+## 1. What is 3NF?
+
+**Third Normal Form (3NF)** is a database normalization rule that removes certain **transitive dependencies**.
+
+In simple words:
+
+> A non-prime attribute should not depend on another non-prime attribute when that dependency causes a violation of 3NF.
+
+Instead, non-prime attributes should depend on a candidate key, the whole candidate key, and nothing but the candidate key, subject to the formal 3NF rule.
+
+### First, remember:
+
+- **Prime attribute:** An attribute that is part of at least one candidate key.
+- **Non-prime attribute:** An attribute that is not part of any candidate key.
+- **Candidate key:** A minimal set of attributes that uniquely identifies a row.
+- **Super key:** Any set of attributes that uniquely identifies a row.
+
+---
+
+## 2. Let's Understand 3NF Using One Example
+
+Suppose we have a Student table:
+
+| Student_ID | Student_Name | Dept_ID | Dept_Name |
+|---|---|---|---|
+| 101 | Arun | D01 | Computer Science |
+| 102 | Ravi | D02 | Mechanical |
+| 103 | Kumar | D01 | Computer Science |
+| 104 | Bala | D03 | Electrical |
+
+Our primary key is:
+
+`Student_ID`
+
+Why?
+
+Because each student has a unique Student_ID.
+
+For example:
+
+- 101 identifies Arun.
+- 102 identifies Ravi.
+- 103 identifies Kumar.
+- 104 identifies Bala.
+
+Therefore, `Student_ID` uniquely identifies every row.
+
+---
+
+## 3. Understand Which Attribute Depends on Which Attribute
+
+Look at the table carefully.
+
+| Attribute | Depends on |
+|---|---|
+| Student_Name | Student_ID |
+| Dept_ID | Student_ID |
+| Dept_Name | Dept_ID |
+
+Let's understand each dependency.
+
+### A. Student_ID → Student_Name
+
+If I give you Student_ID = 101, you can find the student's name.
+
+`101 → Arun`
+
+Therefore:
+
+`Student_ID → Student_Name`
+
+### B. Student_ID → Dept_ID
+
+If I give you Student_ID = 101, you can find the student's department ID.
+
+`101 → D01`
+
+Therefore:
+
+`Student_ID → Dept_ID`
+
+### C. Dept_ID → Dept_Name
+
+If I give you Dept_ID = D01, you can find the department name.
+
+`D01 → Computer Science`
+
+Therefore:
+
+`Dept_ID → Dept_Name`
+
+**Important:** Notice that Dept_ID determines Dept_Name. We do not need Student_ID to determine the department name once we already know Dept_ID.
+
+---
+
+## 4. Understand the Transitive Dependency
+
+Now combine the dependencies:
+
+```text
+Student_ID → Dept_ID
+Dept_ID    → Dept_Name
+```
+
+Therefore:
+
+```text
+Student_ID → Dept_ID → Dept_Name
+```
+
+This is called a **transitive dependency**.
+
+### What does that actually mean?
+
+Suppose I ask:
+
+**What is Arun's department name?**
+
+You find the answer through these steps:
+
+**Step 1: Find Student_ID**
+
+```text
+Student_ID = 101
+```
+
+This identifies Arun.
+
+**Step 2: Find Dept_ID**
+
+```text
+Student_ID = 101
+        ↓
+Dept_ID = D01
+```
+
+This tells us which department Arun belongs to.
+
+**Step 3: Find Dept_Name**
+
+```text
+Dept_ID = D01
+        ↓
+Dept_Name = Computer Science
+```
+
+Now we know Arun's department name.
+
+The complete dependency is:
+
+```text
+Student_ID → Dept_ID → Dept_Name
+```
+
+We reached Dept_Name through Dept_ID.
+
+That is the basic idea of transitive dependency.
+
+---
+
+## 5. Why Is This a Problem?
+
+Look at these dependencies again:
+
+```text
+Student_ID → Student_Name
+
+Student_ID → Dept_ID
+
+Dept_ID → Dept_Name
+```
+
+Our candidate key is:
+
+```text
+Student_ID
+```
+
+The non-prime attributes are:
+
+```text
+Student_Name
+Dept_ID
+Dept_Name
+```
+
+Why are they non-prime?
+
+Because none of these attributes is part of a candidate key in this example.
+
+Now look carefully:
+
+- Student_Name depends on Student_ID.
+- Dept_ID depends on Student_ID.
+- Dept_Name depends on Dept_ID.
+
+The problem is:
+
+`Dept_Name` depends on `Dept_ID`, which is a non-prime attribute in the original Student table.
+
+And `Dept_ID` itself depends on the candidate key, Student_ID.
+
+Therefore:
+
+```text
+Student_ID → Dept_ID → Dept_Name
+```
+
+This is the transitive dependency that violates 3NF.
+
+### Important clarification
+
+3NF is NOT about a non-prime attribute depending on multiple primary keys.
+
+We have only one candidate key in this example:
+
+`Student_ID`
+
+The issue is that a non-prime attribute (`Dept_Name`) depends on another non-prime attribute (`Dept_ID`), rather than being directly determined by a candidate key.
+
+---
+
+## 6. The Most Important Question: Why Is Dept_ID Not a Candidate Key?
+
+You might wonder:
+
+"Wait! Isn't Dept_ID a primary key in the Department table?"
+
+Yes, it is. But we must check which table we are talking about.
+
+In the original Student table:
+
+| Student_ID | Student_Name | Dept_ID | Dept_Name |
+|---|---|---|---|
+| 101 | Arun | D01 | Computer Science |
+| 102 | Ravi | D02 | Mechanical |
+| 103 | Kumar | D01 | Computer Science |
+| 104 | Bala | D03 | Electrical |
+
+Look at Dept_ID:
+
+```text
+D01
+D02
+D01
+D03
+```
+
+D01 appears twice.
+
+Therefore, Dept_ID cannot uniquely identify every row in the original Student table.
+
+So, in the original Student table:
+
+- Student_ID = Candidate key and primary key.
+- Dept_ID = Non-prime attribute.
+- Dept_ID = Not a candidate key.
+- Dept_ID = Not a super key.
+
+**Remember:** Whether an attribute is a candidate key or a foreign key depends on the particular table and its constraints.
+
+---
+
+## 7. How Do We Convert the Table into 3NF?
+
+We separate the department information from the student information.
+
+Why?
+
+Because department details should depend on the department ID, not be unnecessarily repeated for every student.
+
+We create two tables.
+
+### A. Student Table
+
+| Student_ID (PK) | Student_Name | Dept_ID (FK) |
+|---|---|---|
+| 101 | Arun | D01 |
+| 102 | Ravi | D02 |
+| 103 | Kumar | D01 |
+| 104 | Bala | D03 |
+
+Here:
+
+- Student_ID = Primary key.
+- Dept_ID = Foreign key.
+
+### B. Department Table
+
+| Dept_ID (PK) | Dept_Name |
+|---|---|
+| D01 | Computer Science |
+| D02 | Mechanical |
+| D03 | Electrical |
+
+Here:
+
+- Dept_ID = Primary key.
+- Dept_Name = Non-prime attribute.
+
+### Why do we keep Dept_ID in the Student table?
+
+Because we still need to know which department each student belongs to.
+
+For example:
+
+```text
+Arun → D01
+Kumar → D01
+```
+
+Both students belong to the same department.
+
+The foreign key connects the Student table with the Department table.
+
+---
+
+## 8. Understand Primary Key and Foreign Key Here
+
+The same attribute can have different roles in different tables.
+
+| Table | Attribute | Role |
+|---|---|---|
+| Student | Student_ID | Primary key |
+| Student | Dept_ID | Foreign key |
+| Department | Dept_ID | Primary key |
+| Department | Dept_Name | Non-prime attribute |
+
+### Why?
+
+In the Student table:
+
+`Dept_ID` contains repeated values, so it cannot uniquely identify students.
+
+In the Department table:
+
+`Dept_ID` contains unique values, so it can uniquely identify departments.
+
+**Important:** A foreign key can contain duplicate values. A primary key cannot contain duplicate values.
+
+---
+
+## 9. What Problems Does 3NF Prevent?
+
+Keeping department information in the original Student table creates unnecessary repetition.
+
+### A. Update Anomaly
+
+Suppose the department name changes:
+
+```text
+Computer Science → Computer Science and Engineering
+```
+
+In the original table, we must update every student row belonging to D01.
+
+If we forget one row, the database contains inconsistent department names.
+
+After 3NF, we update the department name in only one place: the Department table.
+
+### B. Insertion Anomaly
+
+Suppose we want to add a new department:
+
+```text
+D04 → Civil Engineering
+```
+
+But no student has joined that department yet.
+
+In the original Student table, we cannot conveniently store this department without also having a student row.
+
+After 3NF, we can add the department directly to the Department table.
+
+### C. Deletion Anomaly
+
+Suppose Kumar is the only student in a particular department.
+
+If we delete Kumar's row from the original Student table, we may accidentally lose that department's information too.
+
+After 3NF, department information is stored separately, so deleting a student does not delete the department.
+
+---
+
+## 10. How Do We Get the Department Name After Splitting the Tables?
+
+You might ask:
+
+"If Dept_Name is removed from the Student table, how do I find Arun's department name?"
+
+We use a **JOIN**.
+
+```sql
+SELECT
+    Student.Student_Name,
+    Department.Dept_Name
+FROM Student
+JOIN Department
+    ON Student.Dept_ID = Department.Dept_ID;
+```
+
+Result:
+
+| Student_Name | Dept_Name |
+|---|---|
+| Arun | Computer Science |
+| Ravi | Mechanical |
+| Kumar | Computer Science |
+| Bala | Electrical |
+
+The foreign key connects the two tables.
+
+So we can still retrieve the department name without storing it repeatedly in the Student table.
+
+---
+
+## 11. Difference Between 2NF and 3NF
+
+| 2NF | 3NF |
+|---|---|
+| Removes partial dependencies. | Removes transitive dependencies that violate 3NF. |
+| Concerned with a non-prime attribute depending on only part of a candidate key. | Concerned with a non-prime attribute depending on a determinant that is not a super key. |
+| Relevant when a candidate key is composite. | Can apply even when the candidate key contains only one attribute. |
+| Example: A student's name depends only on Student_ID, which is part of a composite key. | Example: Dept_Name depends on Dept_ID, a non-prime attribute in the original Student table. |
+
+### Easy way to remember
+
+**2NF:**
+
+```text
+Part of a composite candidate key
+                  ↓
+          Non-prime attribute
+```
+
+This is a partial dependency.
+
+**3NF:**
+
+```text
+Candidate key
+      ↓
+ Non-prime attribute
+      ↓
+ Another non-prime attribute
+```
+
+This illustrates a transitive dependency.
+
+---
+
+## 12. Formal 3NF Rule
+
+For every non-trivial functional dependency:
+
+```text
+X → A
+```
+
+At least one of these conditions must be true:
+
+1. X is a super key.
+2. A is a prime attribute.
+
+In our original Student table:
+
+```text
+Dept_ID → Dept_Name
+```
+
+Check the conditions:
+
+- Is Dept_ID a super key in the original Student table? **No.**
+- Is Dept_Name a prime attribute? **No.**
+
+Therefore, this dependency violates 3NF.
+
+That is why we separate the Department information.
+
+---
+
+## 13. Final Revision – Understand This Completely
+
+Original table:
+
+```text
+Student_ID | Student_Name | Dept_ID | Dept_Name
+```
+
+Candidate key:
+
+```text
+Student_ID
+```
+
+Functional dependencies:
+
+```text
+Student_ID → Student_Name
+
+Student_ID → Dept_ID
+
+Dept_ID → Dept_Name
+```
+
+Transitive dependency:
+
+```text
+Student_ID → Dept_ID → Dept_Name
+```
+
+Problem:
+
+```text
+Dept_ID → Dept_Name
+```
+
+Dept_ID is not a super key in the original Student table, and Dept_Name is non-prime.
+
+Solution:
+
+```text
+STUDENT TABLE
+
+Student_ID (PK)
+Student_Name
+Dept_ID (FK)
+```
+
+```text
+DEPARTMENT TABLE
+
+Dept_ID (PK)
+Dept_Name
+```
+
+---
+
+## 14. Test Your Understanding
+
+Try answering these questions without looking at the notes.
+
+**Question 1:** In the original Student table, why is Dept_ID not a candidate key?
+
+**Question 2:** Why can Dept_ID be a primary key in the Department table?
+
+**Question 3:** Which dependency creates the 3NF violation?
+
+**Question 4:** Why is Student_ID → Dept_ID → Dept_Name called a transitive dependency?
+
+**Question 5:** After converting to 3NF, why do we still keep Dept_ID in the Student table?
+
+**Question 6:** If I give you Dept_ID = D01, can you find Dept_Name without knowing Student_ID?
+
+If you can explain all six answers in your own words, you understand the central idea behind 3NF.
 **End of 3NF Notes.**
