@@ -197,3 +197,128 @@ Rules attached to columns so the database automatically rejects invalid input **
   - *Logical:* Adding new columns or views does not break existing queries.
   - *Physical:* Adding indexes or upgrading storage hardware speeds up queries without changing any SQL code.
     
+# Module 1: Relational Database Fundamentals
+
+## 1. What is a Database and a Table?
+A **database** is a place where apps save and organize data safely. A **Relational Database** (like PostgreSQL or MySQL) stores data in **tables**, just like an Excel sheet.
+
+* **Table:** Holds data about one specific thing (example: `Customers` or `Orders`).
+* **Row (Record):** One single item in the table (example: 1 customer named Arun).
+* **Column (Field):** One detail about that item (example: `name`, `phone`, `city`).
+* **Data Type:** Every column only accepts one type of data:
+  * `INT`: Whole numbers (example: `1`, `25`, `100`)
+  * `DECIMAL(10, 2)`: Money or decimal numbers (example: `499.50`)
+  * `VARCHAR(100)`: Text up to 100 letters (example: `"Arun"`)
+  * `DATE`: Calendar dates (example: `'2026-11-16'`)
+
+---
+
+## 2. Parent Table vs. Child Table
+Instead of putting all data into one giant table, we split data into separate tables and connect them.
+
+* **Parent Table (`Customers`):** The main table that holds master info. It can exist on its own.
+* **Child Table (`Orders`):** The second table that depends on the Parent Table. Every order must belong to a customer.
+
+### Parent Table: `Customers`
+| customer_id | name | phone |
+| :--- | :--- | :--- |
+| 1 | Arun | 9840011111 |
+| 2 | Priya | 9840022222 |
+
+### Child Table: `Orders`
+| order_id | customer_id | item | price |
+| :--- | :--- | :--- | :--- |
+| 101 | 1 | Tea | 20.00 |
+| 102 | 1 | Vada | 15.00 |
+| 103 | 2 | Coffee | 30.00 |
+
+---
+
+## 3. Primary Key vs. Foreign Key
+
+### Primary Key (`PK`)
+A **Primary Key** is the unique ID number for every row in a table (like an Aadhaar number).
+* **Rule 1:** It **cannot repeat** (`1, 2, 3...`).
+* **Rule 2:** It **cannot be empty** (`NULL`).
+* **Example:** `customer_id` in `Customers`, and `order_id` in `Orders`.
+* **Composite Primary Key:** Sometimes 1 column is not enough, so 2 columns work together as the Primary Key (example: `(order_id, product_id)`).
+
+### Foreign Key (`FK`)
+A **Foreign Key** is a column in the Child Table that points to the Primary Key of the Parent Table.
+* **Job:** It links two tables together.
+* **Rule 1:** The value **must exist** in the Parent Table first.
+* **Rule 2:** It **can repeat** in the Child Table (in the table above, `customer_id = 1` appears twice because Arun bought both Tea and Vada).
+
+| Feature | Primary Key (`PK`) | Foreign Key (`FK`) |
+| :--- | :--- | :--- |
+| **Where it lives** | Main ID of its own table | Inside a Child Table, pointing to a Parent Table |
+| **Can values repeat?** | **No** (Must be unique) | **Yes** (One customer can have many orders) |
+| **Can it be empty (`NULL`)?** | **No** (Never) | **Yes** (Unless you add `NOT NULL`) |
+
+---
+
+## 4. Database Constraints (Table Rules)
+**Constraints** are rules you put on columns. The database checks these rules automatically and **blocks wrong data** before saving it.
+
+1. **`PRIMARY KEY`:** Automatically turns on both `UNIQUE` and `NOT NULL` for the ID column.
+2. **`NOT NULL`:** The box cannot be left empty (example: every customer must have a `name`).
+3. **`UNIQUE`:** No two rows can have the same value (example: two customers cannot use the same `phone` number).
+4. **`CHECK`:** Checks a math or logic rule (example: `CHECK (price > 0)` blocks negative prices like `-50`).
+5. **`DEFAULT`:** Fills in an automatic value if you leave it blank (example: `DEFAULT 'Pending'` for order status).
+6. **`FOREIGN KEY`:** Blocks fake IDs (you cannot add `customer_id = 5` in `Orders` if `5` is not in `Customers`).
+
+### Full SQL Code Example
+```sql
+-- 1. Create Parent Table first
+CREATE TABLE Customers (
+    customer_id INT PRIMARY KEY,            -- Unique ID, cannot be empty
+    name VARCHAR(100) NOT NULL,             -- Cannot be empty
+    phone VARCHAR(15) UNIQUE NOT NULL       -- No duplicate phones, cannot be empty
+);
+
+-- 2. Create Child Table second
+CREATE TABLE Orders (
+    order_id INT PRIMARY KEY,               -- Unique ID for each order
+    customer_id INT NOT NULL,               -- Links to Customers (NO UNIQUE, so 1 customer can buy many times)
+    item VARCHAR(50) NOT NULL,
+    price DECIMAL(10, 2) CHECK (price > 0), -- Price must be greater than 0
+    status VARCHAR(20) DEFAULT 'Pending',   -- Auto-fills 'Pending' if not given
+    FOREIGN KEY (customer_id) REFERENCES Customers(customer_id)
+);
+```
+
+---
+
+## 5. Foreign Key Delete Rules
+Suppose Arun (`customer_id = 1`) is in the Parent Table (`Customers`), and his orders (`101`, `102`) are in the Child Table (`Orders`). What happens if you try to delete Arun (`DELETE FROM Customers WHERE customer_id = 1;`)?
+
+There are **3 rules** you can choose when creating the Foreign Key:
+
+### Rule 1: `ON DELETE RESTRICT` (Default Rule — "Block the Delete")
+* **How it works:** If you write nothing extra, this rule is ON by default.
+* **What happens:** The database sees Arun still has orders (`101`, `102`) in `Orders`. It **blocks the delete** and shows an error. Nothing gets deleted.
+
+### Rule 2: `ON DELETE CASCADE` ("Delete Parent and All Child Rows")
+* **SQL syntax:** `FOREIGN KEY (customer_id) REFERENCES Customers(customer_id) ON DELETE CASCADE`
+* **What happens:** Deleting Arun (`customer_id = 1`) from `Customers` **also deletes** all of Arun's orders (`101`, `102`) from `Orders` automatically.
+
+### Rule 3: `ON DELETE SET NULL` ("Delete Parent, Keep Child Rows Blank")
+* **SQL syntax:** `FOREIGN KEY (customer_id) REFERENCES Customers(customer_id) ON DELETE SET NULL` *(Note: `customer_id` in `Orders` must allow `NULL`)*
+* **What happens:** Arun is deleted from `Customers`, and his orders (`101`, `102`) **stay in `Orders`**, but their `customer_id` changes from `1` to `NULL` (empty).
+
+| Delete Rule | Parent Table (`Customers`: Arun) | Child Table (`Orders`: 101, 102) |
+| :--- | :--- | :--- |
+| **`ON DELETE RESTRICT`** *(Default)* | **Blocked** (Not deleted) | **Stays safe** (`customer_id = 1`) |
+| **`ON DELETE CASCADE`** | **Deleted** | **Automatically deleted** |
+| **`ON DELETE SET NULL`** | **Deleted** | **Stays in table**, `customer_id` becomes `NULL` |
+
+---
+
+## 6. SQL (Relational) vs. NoSQL (Non-Relational)
+
+| Feature | SQL Database (Relational) | NoSQL Database (Non-Relational) |
+| :--- | :--- | :--- |
+| **Popular Tools** | PostgreSQL, MySQL, SQL Server | MongoDB, Redis, Cassandra |
+| **How Data Looks** | Fixed tables with rows and columns | Flexible JSON files (`{"name": "Arun", "items": ["Tea", "Vada"]}`) |
+| **Table Structure** | **Strict:** Must create columns and rules before adding data | **Flexible:** Every record can have different fields |
+| **Best Used For** | Banking, e-commerce orders, payments, inventory | App user sessions, product catalogs with changing details, chat logs |
